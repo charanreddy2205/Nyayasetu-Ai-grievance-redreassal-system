@@ -9,10 +9,8 @@ services:
       pip install -r requirements.txt
       cd nyayasetu
       python manage.py collectstatic --noinput
-    preDeployCommand: |
-      python manage.py migrate
     startCommand: |
-      gunicorn -c gunicorn_config.py nyayasetu.wsgi:application
+      python manage.py migrate && gunicorn -c gunicorn_config.py nyayasetu.wsgi:application
     envVars:
       - key: DJANGO_SECRET_KEY
         generateValue: true
