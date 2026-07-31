@@ -12,6 +12,8 @@ services:
     startCommand: |
       python manage.py migrate && gunicorn -c gunicorn_config.py nyayasetu.wsgi:application
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.10.13"
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: DJANGO_DEBUG
