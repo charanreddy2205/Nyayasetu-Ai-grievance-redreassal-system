@@ -2,6 +2,7 @@ services:
   - type: web
     name: nyayasetu-backend
     env: python
+    plan: free
     rootDir: nyayasetu
     buildCommand: |
       cd ..
