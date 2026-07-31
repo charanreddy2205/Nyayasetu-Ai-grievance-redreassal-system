@@ -12,3 +12,4 @@ requests==2.32.3
 sqlparse==0.5.3
 whitenoise==6.8.2
 gunicorn==23.0.0
+apscheduler==3.10.4
