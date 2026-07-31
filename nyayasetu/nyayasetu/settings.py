@@ -174,6 +174,8 @@ CSRF_TRUSTED_ORIGINS = [
 
 if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
     CSRF_TRUSTED_ORIGINS.append(f'https://{os.environ.get("RENDER_EXTERNAL_HOSTNAME")}')
+if os.environ.get('FRONTEND_URL'):
+    CSRF_TRUSTED_ORIGINS.append(os.environ.get('FRONTEND_URL'))
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SECURE = not DEBUG or os.environ.get('SESSION_COOKIE_SECURE', 'False') == 'True'
 CSRF_COOKIE_SECURE = not DEBUG or os.environ.get('CSRF_COOKIE_SECURE', 'False') == 'True'
