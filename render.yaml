@@ -73,8 +73,9 @@ services:
           name: nyayasetu-db
           property: connectionString
 
-  - type: static_site
+  - type: web
     name: nyayasetu-frontend
+    env: static
     rootDir: nyayasetu/frontend
     buildCommand: |
       npm install
