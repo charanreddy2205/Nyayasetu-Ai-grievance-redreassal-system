@@ -73,7 +73,7 @@ services:
           name: nyayasetu-db
           property: connectionString
 
-  - type: static
+  - type: static_site
     name: nyayasetu-frontend
     rootDir: nyayasetu/frontend
     buildCommand: |
