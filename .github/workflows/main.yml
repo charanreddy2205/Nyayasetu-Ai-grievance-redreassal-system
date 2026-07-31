@@ -1,0 +1,123 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r nyayasetu/requirements.txt
+          pip install flake8 black bandit
+
+      - name: Lint with Flake8
+        run: |
+          flake8 nyayasetu/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 nyayasetu/ --count --max-complexity=10 --max-line-length=120 --statistics
+
+      - name: Check code formatting with Black
+        run: |
+          black --check nyayasetu/
+
+      - name: Security Scan with Bandit
+        run: |
+          bandit -r nyayasetu/ -ll -ii
+
+      - name: Run Django Tests & Enforce Coverage (90%)
+        run: |
+          cd nyayasetu
+          pytest --cov=. --cov-fail-under=90 --cov-report=xml
+
+  frontend-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: nyayasetu/frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./nyayasetu/frontend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./nyayasetu/frontend
+        run: npm run lint
+
+      - name: Run Vitest with Coverage (80%)
+        working-directory: ./nyayasetu/frontend
+        run: npm run test -- --run --coverage
+
+      - name: Build Frontend
+        working-directory: ./nyayasetu/frontend
+        run: npm run build
+
+  e2e-playwright:
+    needs: [lint-and-test, frontend-check]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright & dependencies
+        working-directory: ./e2e
+        run: |
+          npm init -y
+          npm i -D @playwright/test @axe-core/playwright
+          npx playwright install --with-deps
+
+      - name: Run Playwright Tests
+        working-directory: ./e2e
+        run: npx playwright test
+
+  container-scan:
+    needs: [lint-and-test, frontend-check, e2e-playwright]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Backend Image
+        run: docker build -t nyayasetu-backend:test -f Dockerfile.backend .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'nyayasetu-backend:test'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  deploy:
+    needs: container-scan
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy Placeholder
+        run: echo "Deployment process to Kubernetes or Cloud Provider goes here."

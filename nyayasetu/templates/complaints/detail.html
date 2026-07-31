@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% load complaints_extras %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Back Button -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{% url 'my_complaints' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to My Complaints
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- LEFT SIDE -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+
+                <div class="card-header py-3 d-flex justify-content-between bg-dark text-white">
+                    <h5 class="m-0">Complaint #{{ complaint.id }}</h5>
+
+                    <div class="d-flex gap-2">
+
+                        <!-- Urgency Badge -->
+                        {% if complaint.urgency_level == 'critical' %}
+                        <span class="badge bg-danger">Urgency: {{ complaint.urgency_level|title }}</span>
+                        {% elif complaint.urgency_level == 'high' %}
+                        <span class="badge bg-warning text-dark">Urgency: {{ complaint.urgency_level|title }}</span>
+                        {% elif complaint.urgency_level == 'medium' %}
+                        <span class="badge bg-info text-dark">Urgency: {{ complaint.urgency_level|title }}</span>
+                        {% else %}
+                        <span class="badge bg-success">Urgency: {{ complaint.urgency_level|title }}</span>
+                        {% endif %}
+
+                        <!-- Status Badge -->
+                        {% if complaint.status == 'resolved' %}
+                        <span class="badge bg-success">{{ complaint.get_status_display }}</span>
+                        {% elif complaint.status == 'escalated' %}
+                        <span class="badge bg-danger">{{ complaint.get_status_display }}</span>
+                        {% elif complaint.status == 'administrative_failure' %}
+                        <span class="badge bg-dark">{{ complaint.get_status_display }}</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">{{ complaint.get_status_display }}</span>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- Admin Failure Alert -->
+                    {% if complaint.status == 'administrative_failure' %}
+                    <div class="alert alert-danger fw-bold text-center">
+                        ADMINISTRATIVE FAILURE: SLA DEADLINE BREACHED & NOT RESOLVED
+                    </div>
+                    {% endif %}
+
+                    <h4 class="text-primary">{{ complaint.title }}</h4>
+
+                    <p class="text-muted small">
+                        Logged on {{ complaint.created_at|date:"M d, Y H:i" }}
+                        |
+                        Department: <strong>{{ complaint.department.name }}</strong>
+                    </p>
+
+                    <!-- SLA Stepper -->
+                    <div class="card shadow-sm border-0 mb-4 bg-light">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold mb-4 text-dark"><i class="fas fa-route me-2 text-primary"></i>Resolution SLA Progress</h6>
+                            <div class="stepper-wrapper">
+                                <div class="stepper-item completed">
+                                    <div class="step-counter"><i class="fas fa-check"></i></div>
+                                    <div class="step-name">Lodged</div>
+                                </div>
+                                <div class="stepper-item {% if complaint.status != 'pending' %}completed{% else %}active{% endif %}">
+                                    <div class="step-counter">
+                                        {% if complaint.status != 'pending' %}<i class="fas fa-check"></i>{% else %}2{% endif %}
+                                    </div>
+                                    <div class="step-name">Assigned</div>
+                                </div>
+                                <div class="stepper-item {% if complaint.status == 'escalated' %}escalated active{% elif complaint.status == 'administrative_failure' %}failed{% elif complaint.escalation_level > 0 %}completed{% endif %}">
+                                    <div class="step-counter">
+                                        {% if complaint.status == 'escalated' %}
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        {% elif complaint.status == 'administrative_failure' %}
+                                            <i class="fas fa-times"></i>
+                                        {% elif complaint.escalation_level > 0 %}
+                                            <i class="fas fa-check"></i>
+                                        {% else %}
+                                            3
+                                        {% endif %}
+                                    </div>
+                                    <div class="step-name">Escalation ({% firstof complaint.escalation_level "0" %}/3)</div>
+                                </div>
+                                <div class="stepper-item {% if complaint.status == 'resolved' %}completed{% elif complaint.status == 'administrative_failure' %}failed{% elif complaint.status != 'pending' and complaint.status != 'in_progress' and complaint.status != 'escalated' %}active{% endif %}">
+                                    <div class="step-counter">
+                                        {% if complaint.status == 'resolved' %}
+                                            <i class="fas fa-check-double"></i>
+                                        {% elif complaint.status == 'administrative_failure' %}
+                                            <i class="fas fa-skull-crossbones"></i>
+                                        {% else %}
+                                            4
+                                        {% endif %}
+                                    </div>
+                                    <div class="step-name">
+                                        {% if complaint.status == 'administrative_failure' %}
+                                            Failed (Breached)
+                                        {% else %}
+                                            Resolved
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Summary -->
+                    {% if complaint.summary %}
+                    <div class="card shadow-sm border-0 mb-4 bg-light bg-opacity-70 border-start border-4 border-info">
+                        <div class="card-body py-3">
+                            <h6 class="fw-bold mb-2 text-dark"><i class="fas fa-robot me-2 text-info"></i>AI Generated Summary</h6>
+                            <p class="mb-0 text-muted small" style="font-style: italic;">"{{ complaint.summary }}"</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <h6>Description</h6>
+                    <div class="bg-light p-3 rounded border mb-4">
+                        {{ complaint.description|linebreaks }}
+                    </div>
+
+                    {% if complaint.image %}
+                    <div class="mb-4">
+                        <h6>Attached Evidence</h6>
+                        <img src="{{ complaint.image.url }}" class="img-fluid rounded" style="max-height:400px;">
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- SLA CARD -->
+                    <div class="card border-left-danger shadow-sm py-2">
+                        <div class="card-body">
+                            <div class="text-danger text-uppercase small">SLA Deadline</div>
+
+                            <div class="h5 font-weight-bold">
+                                {{ complaint.sla_deadline|date:"M d, Y H:i" }}
+                            </div>
+
+                            {% if complaint.status != 'resolved' and complaint.status != 'administrative_failure' %}
+                            <div id="sla-timer" class="mt-2 text-danger fw-bold small">
+                                Time Remaining: <span id="countdown">Loading...</span>
+                            </div>
+                            {% endif %}
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- DISCUSSION THREAD CARD -->
+            <div class="card shadow mb-4 glass">
+                <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Citizen-Officer Discussion</h5>
+                    <span class="badge bg-light text-primary">{{ comments|length }} Messages</span>
+                </div>
+                <div class="card-body">
+                    <!-- Message Thread -->
+                    <div class="chat-thread mb-4">
+                        {% for comment in comments %}
+                            <div class="chat-message {% if comment.author.role == 'citizen' %}citizen{% else %}officer{% endif %}">
+                                <div class="chat-text">
+                                    {{ comment.comment_text|linebreaksbr }}
+                                </div>
+                                {% if comment.image %}
+                                    <div class="text-center mt-2">
+                                        <a href="{{ comment.image.url }}" target="_blank">
+                                            <img src="{{ comment.image.url }}" class="img-fluid rounded" alt="Evidence" style="max-height: 150px;">
+                                        </a>
+                                    </div>
+                                {% endif %}
+                                <span class="chat-meta">
+                                    <span class="chat-meta-author">{{ comment.author.username }}</span> 
+                                    ({{ comment.author.get_role_display }}) 
+                                    at {{ comment.created_at|date:"M d, H:i" }}
+                                </span>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-4 text-muted">
+                                No messages in this thread yet. Send a message below to start the conversation!
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Send Message Form -->
+                    <hr>
+                    <form method="post" enctype="multipart/form-data" class="mt-3">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ comment_form.comment_text }}
+                        </div>
+                        <div class="row align-items-center">
+                            <div class="col-md-8 mb-2 mb-md-0">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-paperclip me-2 text-muted"></i>
+                                    {{ comment_form.image }}
+                                </div>
+                                <small class="text-muted d-block mt-1">Upload additional images or resolution proofs (optional).</small>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="col-lg-4">
+            <!-- Geospatial Mini-Map -->
+            {% if complaint.latitude and complaint.longitude %}
+            <div class="card shadow mb-4">
+                <div class="card-header bg-dark text-white">
+                    <i class="fas fa-map-location-dot me-2"></i>Incident Spot Location
+                </div>
+                <div class="card-body p-0">
+                    <div id="mini-map" style="height: 250px; width: 100%;"></div>
+                    <div class="p-3 bg-light">
+                        <small class="text-muted d-block"><strong>Address:</strong> {{ complaint.address|default:"N/A" }}</small>
+                        <small class="text-muted d-block"><strong>City:</strong> {{ complaint.city|default:"N/A" }} | <strong>Pincode:</strong> {{ complaint.pincode|default:"N/A" }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    Escalation & Activity Log
+                </div>
+
+                <div class="card-body p-0">
+                    {% if logs %}
+                    <ul class="list-group list-group-flush">
+                        {% for log in logs %}
+                        <li class="list-group-item">
+                            <small class="text-muted">
+                                {{ log.escalated_at|date:"M d, H:i" }}
+                            </small>
+
+                            <p class="mb-1">
+                                <strong>Escalated to:</strong>
+                                {{ log.escalated_to.get_full_name|default:log.escalated_to.username }}
+                            </p>
+
+                            <small class="text-danger">
+                                <strong>Reason:</strong> {{ log.reason }}
+                            </small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        No escalations recorded yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% if complaint.status != 'resolved' and complaint.status != 'administrative_failure' %}
+<input type="hidden" id="sla-deadline-timestamp" value="{{ complaint.sla_deadline|date:'c' }}">
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const deadline = new Date(document.getElementById('sla-deadline-timestamp').value).getTime();
+        const timerElement = document.getElementById('countdown');
+
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = deadline - now;
+
+            if (distance < 0) {
+                timerElement.innerHTML = "SLA BREACHED";
+            } else {
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                timerElement.innerHTML = hours + "h " + minutes + "m " + seconds + "s";
+            }
+        }
+
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    });
+</script>
+{% endif %}
+
+<!-- Leaflet JS & Map Script -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Mini Map Initialization
+        {% if complaint.latitude and complaint.longitude %}
+        try {
+            const lat = parseFloat("{{ complaint.latitude }}");
+            const lon = parseFloat("{{ complaint.longitude }}");
+            const miniMap = L.map('mini-map').setView([lat, lon], 14);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(miniMap);
+            
+            L.marker([lat, lon]).addTo(miniMap)
+                .bindPopup("<b>Incident Spot</b><br>Ref ID: #{{ complaint.id }}")
+                .openPopup();
+        } catch (error) {
+            console.error('Error loading mini-map:', error);
+        }
+        {% endif %}
+    });
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+{% endblock %}

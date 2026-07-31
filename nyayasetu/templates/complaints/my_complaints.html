@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load complaints_extras %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 mb-0 text-gray-800">My Complaints</h2>
+        <a href="{% url 'create_complaint' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Log New Complaint
+        </a>
+    </div>
+
+    <!-- Complaints Table Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Your Complaints History</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ref ID</th>
+                            <th>Title</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Urgency</th>
+                            <th>Escalation</th>
+                            <th>Deadline</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for complaint in complaints %}
+                        <tr class="{% if complaint|is_overdue:now %}table-danger{% endif %}">
+                            <td>#{{ complaint.id }}</td>
+                            <td>{{ complaint.title }}</td>
+                            <td>{{ complaint.department.name }}</td>
+                            <td>
+                                {% if complaint.status == 'resolved' %}
+                                <span class="badge bg-success">{{ complaint.get_status_display }}</span>
+                                {% elif complaint.status == 'escalated' %}
+                                <span class="badge bg-danger">{{ complaint.get_status_display }}</span>
+                                {% elif complaint.status == 'administrative_failure' %}
+                                <span class="badge bg-dark">{{ complaint.get_status_display }}</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">{{ complaint.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span
+                                    class="badge {% if complaint.urgency_level == 'critical' %}bg-danger{% elif complaint.urgency_level == 'high' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                                    {{ complaint.urgency_level|title }}
+                                </span>
+                            </td>
+                            <td>
+                                Level {{ complaint.escalation_level }}
+                            </td>
+                            <td>
+                                {% if complaint.sla_deadline %}
+                                {{ complaint.sla_deadline|date:"M d, Y H:i" }}
+                                {% if complaint|is_overdue:now %}
+                                <span class="badge bg-danger ms-1">OVERDUE</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'complaint_detail' complaint.id %}"
+                                    class="btn btn-sm btn-info text-white">
+                                    View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <p class="text-muted mb-0">No complaints found.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

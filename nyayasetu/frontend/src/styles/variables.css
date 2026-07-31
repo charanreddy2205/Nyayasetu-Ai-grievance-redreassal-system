@@ -1,0 +1,159 @@
+/* =========================================================
+   NyayaSetu Design Tokens — variables.css
+   ========================================================= */
+
+:root {
+  /* --- Brand Colors --- */
+  --primary-navy: #0f172a;
+  --primary-navy-light: #1e293b;
+  --primary-blue: #1e3a8a;
+  --primary-blue-light: #3b82f6;
+  --primary-blue-hover: #1d4ed8;
+  --saffron: #ff9933;
+  --saffron-light: #fff3e0;
+  --ashoka-blue: #000080;
+  --green: #128807;
+  --green-light: #e8f5e9;
+  --green-hover: #0f6b06;
+  --gold: #d4af37;
+
+  /* --- Semantic Text Colors --- */
+  --text-dark: #1e293b;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* --- Backgrounds --- */
+  --bg-light: #f8fafc;
+  --bg-white: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --bg-overlay: rgba(15, 23, 42, 0.6);
+
+  /* --- Borders --- */
+  --border-color: #e2e8f0;
+  --border-focus: #3b82f6;
+  --border-error: #ef4444;
+
+  /* --- Status Colors --- */
+  --status-pending-bg: #fef9c3;
+  --status-pending-text: #854d0e;
+  --status-pending-border: #fde047;
+  --status-progress-bg: #dbeafe;
+  --status-progress-text: #1e40af;
+  --status-progress-border: #93c5fd;
+  --status-resolved-bg: #dcfce7;
+  --status-resolved-text: #166534;
+  --status-resolved-border: #86efac;
+  --status-escalated-bg: #fee2e2;
+  --status-escalated-text: #991b1b;
+  --status-escalated-border: #fca5a5;
+  --status-failure-bg: #f3e8ff;
+  --status-failure-text: #6b21a8;
+  --status-failure-border: #d8b4fe;
+
+  /* --- Urgency Colors --- */
+  --urgency-low-bg: #dbeafe;
+  --urgency-low-text: #1e40af;
+  --urgency-medium-bg: #fef9c3;
+  --urgency-medium-text: #854d0e;
+  --urgency-high-bg: #ffedd5;
+  --urgency-high-text: #c2410c;
+  --urgency-critical-bg: #fee2e2;
+  --urgency-critical-text: #991b1b;
+
+  /* --- Shadows --- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-premium: 0 20px 40px -10px rgba(15, 23, 42, 0.12);
+  --shadow-glow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+
+  /* --- Border Radii --- */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* --- Spacing Scale --- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* --- Typography --- */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* --- Transitions --- */
+  --transition-fast: 0.12s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+
+  /* --- Layout --- */
+  --max-width: 1280px;
+  --navbar-height: 64px;
+}
+
+/* =========================================================
+   Dark Mode Token Overrides
+   ========================================================= */
+[data-theme="dark"] {
+  --text-dark: #f1f5f9;
+  --text-body: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+
+  --bg-light: #0f172a;
+  --bg-white: #1e293b;
+  --bg-subtle: #334155;
+
+  --border-color: #334155;
+  --border-focus: #60a5fa;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+
+  --status-pending-bg: #422006;
+  --status-pending-text: #fde68a;
+  --status-progress-bg: #1e3a8a;
+  --status-progress-text: #bfdbfe;
+  --status-resolved-bg: #14532d;
+  --status-resolved-text: #bbf7d0;
+  --status-escalated-bg: #7f1d1d;
+  --status-escalated-text: #fecaca;
+  --status-failure-bg: #3b0764;
+  --status-failure-text: #e9d5ff;
+
+  --urgency-low-bg: #1e3a8a;
+  --urgency-low-text: #bfdbfe;
+  --urgency-medium-bg: #422006;
+  --urgency-medium-text: #fde68a;
+  --urgency-high-bg: #431407;
+  --urgency-high-text: #fed7aa;
+  --urgency-critical-bg: #7f1d1d;
+  --urgency-critical-text: #fecaca;
+}

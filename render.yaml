@@ -1,0 +1,104 @@
+services:
+  - type: web
+    name: nyayasetu-backend
+    env: python
+    rootDir: nyayasetu
+    buildCommand: |
+      cd ..
+      pip install -r requirements.txt
+      cd nyayasetu
+      python manage.py collectstatic --noinput
+    preDeployCommand: |
+      python manage.py migrate
+    startCommand: |
+      gunicorn -c gunicorn_config.py nyayasetu.wsgi:application
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: CELERY_TASK_ALWAYS_EAGER
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "nyayasetu-backend.onrender.com"
+      - key: SECURE_SSL_REDIRECT
+        value: "True"
+      - key: SESSION_COOKIE_SECURE
+        value: "True"
+      - key: CSRF_COOKIE_SECURE
+        value: "True"
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: nyayasetu-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: nyayasetu-redis
+          property: connectionString
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nyayasetu-db
+          property: connectionString
+
+  - type: worker
+    name: nyayasetu-celery
+    env: python
+    rootDir: nyayasetu
+    buildCommand: |
+      cd ..
+      pip install -r requirements.txt
+    startCommand: |
+      celery -A nyayasetu worker -l info --concurrency=2 -Q default_queue,ai_queue,notification_queue
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: CELERY_TASK_ALWAYS_EAGER
+        value: "False"
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: nyayasetu-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: nyayasetu-redis
+          property: connectionString
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nyayasetu-db
+          property: connectionString
+
+  - type: static
+    name: nyayasetu-frontend
+    rootDir: nyayasetu/frontend
+    buildCommand: |
+      npm install
+      npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://nyayasetu-backend.onrender.com/api/*
+      - type: rewrite
+        source: /media/*
+        destination: https://nyayasetu-backend.onrender.com/media/*
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: "https://nyayasetu-backend.onrender.com"
+
+databases:
+  - name: nyayasetu-db
+    plan: free
+
+  - type: redis
+    name: nyayasetu-redis
+    plan: free
+    ipAllowList: []

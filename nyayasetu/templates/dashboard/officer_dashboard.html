@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+{% load complaints_extras %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="fw-bold text-gray-800">Officer Dashboard</h2>
+            <p class="text-muted">
+                Welcome, <span class="fw-semibold text-primary">{{ user.get_full_name|default:user.username }}</span>
+                <span class="badge bg-secondary ms-2">{{ user.role|title }}</span>
+            </p>
+            {% if department %}
+            <div class="alert alert-light border-start border-4 border-info shadow-sm" role="alert">
+                <i class="fas fa-building me-2 text-info"></i>
+                <span class="fw-semibold">{{ department.name }}</span>
+                <span class="mx-2">|</span>
+                Transparency Score:
+                <span
+                    class="badge {% if department.transparency_score < 50 %}bg-danger{% elif department.transparency_score < 80 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                    {{ department.transparency_score }}%
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100 border-left-primary">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Assigned Complaints
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ assigned_count }}</div>
+                            <a href="{% url 'assigned_complaints' %}"
+                                class="small text-decoration-none mt-2 d-inline-block">View All &rarr;</a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100 border-left-danger">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Overdue Complaints
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ overdue_count }}</div>
+                            <div class="small text-danger mt-2">Requires Immediate Action</div>
+                            <a href="{% url 'assigned_complaints' %}?overdue=true"
+                                class="small text-decoration-none mt-2 d-inline-block text-danger">View Details
+                                &rarr;</a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100 border-left-warning">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Escalated to Me</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ escalated_count }}</div>
+                            <div class="small text-warning mt-2">High Priority</div>
+                            <a href="{% url 'assigned_complaints' %}?status=escalated"
+                                class="small text-decoration-none mt-2 d-inline-block text-warning">View Details
+                                &rarr;</a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-up fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Geospatial Department Map Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card-header py-3 bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-map-location-dot me-2"></i>Department Grievance Map</h6>
+                    <span class="badge bg-light text-dark">Geolocated Issues</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height: 350px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-th-list me-2"></i>Recent Assigned Complaints</h6>
+                    <span class="badge bg-light text-dark">{{ recent_complaints|length }} items</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ref ID</th>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Urgency</th>
+                                    <th>SLA Deadline</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for complaint in recent_complaints %}
+                                <tr class="{% if complaint|is_overdue:now %}table-danger{% endif %}">
+                                    <td class="fw-bold">#{{ complaint.id }}</td>
+                                    <td>{{ complaint.title|truncatechars:50 }}</td>
+                                    <td>
+                                        {% if complaint.status == 'resolved' %}
+                                        <span class="badge bg-success">{{ complaint.get_status_display }}</span>
+                                        {% elif complaint.status == 'escalated' %}
+                                        <span class="badge bg-danger">{{ complaint.get_status_display }}</span>
+                                        {% elif complaint.status == 'administrative_failure' %}
+                                        <span class="badge bg-dark">{{ complaint.get_status_display }}</span>
+                                        {% else %}
+                                        <span class="badge bg-warning text-dark">{{ complaint.get_status_display
+                                            }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="badge {% if complaint.urgency_level == 'critical' %}bg-danger{% elif complaint.urgency_level == 'high' %}bg-warning text-dark{% elif complaint.urgency_level == 'medium' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                            {{ complaint.urgency_level|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="{% if complaint.sla_deadline < now %}text-danger fw-bold{% endif %}">
+                                            {{ complaint.sla_deadline|date:"M d, Y H:i" }}
+                                        </span>
+                                        {% if complaint|is_overdue:now %}
+                                        <span class="badge bg-danger ms-1">OVERDUE</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'complaint_detail' complaint.id %}"
+                                            class="btn btn-sm btn-info text-white me-1" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'update_complaint_status' complaint.id %}"
+                                            class="btn btn-sm btn-primary" title="Update Status">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-5">
+                                        <i class="fas fa-clipboard-check fa-3x mb-3 opacity-25"></i>
+                                        <p class="mb-0">No recent complaints assigned to you.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if recent_complaints %}
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'assigned_complaints' %}" class="btn btn-outline-primary">View All Assigned
+                            Complaints <i class="fas fa-arrow-right ms-2"></i></a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- City-Wide Statistics Section -->
+        <div class="row mb-4 fade-in-up" style="animation-delay: 0.1s;">
+            <div class="col-12">
+                <h4 class="fw-bold mb-3 text-gray-800 border-bottom pb-2">
+                    <i class="fas fa-city me-2 text-primary"></i>City-Wide Statistics
+                </h4>
+            </div>
+        </div>
+
+        <!-- Global Summary Cards -->
+        <div class="row mb-5 g-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-primary text-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                <i class="fas fa-file-alt fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="display-6 fw-bold mb-1">{{ total_complaints }}</h3>
+                        <p class="mb-0 text-white-50 small text-uppercase fw-bold letter-spacing-1">Total Complaints</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'assigned_complaints' %}?status=resolved" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 bg-success text-white transition-hover">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                            <h3 class="display-6 fw-bold mb-1">{{ officer_resolved_count }}</h3>
+                            <p class="mb-0 text-white-50 small text-uppercase fw-bold letter-spacing-1">Resolved (My)
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-warning text-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="display-6 fw-bold mb-1">{{ total_pending }}</h3>
+                        <p class="mb-0 text-white-50 small text-uppercase fw-bold letter-spacing-1">Pending</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 bg-danger text-white">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="display-6 fw-bold mb-1">{{ total_administrative_failures }}</h3>
+                        <p class="mb-0 text-white-50 small text-uppercase fw-bold letter-spacing-1">Admin Failures</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Department Analysis -->
+        <div class="row fade-in-up" style="animation-delay: 0.2s;">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg overflow-hidden">
+                    <div
+                        class="card-header bg-white border-0 py-3 px-4 d-flex align-items-center justify-content-between">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-list-ol me-2 text-primary"></i>Department
+                            Analysis
+                        </h5>
+                        <span class="badge bg-light text-dark border shadow-sm">Ordered by Transparency Score</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4 py-3 text-uppercase text-muted small fw-bold border-0">Rank</th>
+                                        <th class="py-3 text-uppercase text-muted small fw-bold border-0">Department
+                                        </th>
+                                        <th class="py-3 text-center text-uppercase text-muted small fw-bold border-0">
+                                            Total
+                                        </th>
+                                        <th class="py-3 text-center text-uppercase text-muted small fw-bold border-0">
+                                            Resolved</th>
+                                        <th class="py-3 text-center text-uppercase text-muted small fw-bold border-0">
+                                            Failures</th>
+                                        <th class="pe-4 py-3 text-uppercase text-muted small fw-bold border-0"
+                                            style="width: 30%;">Transparency Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for dept in departments %}
+                                    <tr>
+                                        <td class="ps-4 py-3 border-bottom-0">
+                                            <span
+                                                class="badge bg-secondary bg-opacity-10 text-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                style="width: 30px; height: 30px;">
+                                                {{ forloop.counter }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3 border-bottom-0">
+                                            <div class="fw-bold text-dark">{{ dept.name }}</div>
+                                            <small class="text-muted d-block text-truncate" style="max-width: 250px;">{{
+                                                dept.description }}</small>
+                                        </td>
+                                        <td class="text-center fw-bold py-3 border-bottom-0">{{ dept.total_complaints }}
+                                        </td>
+                                        <td class="text-center py-3 border-bottom-0">
+                                            <span
+                                                class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3">
+                                                {{ dept.resolved_count }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center py-3 border-bottom-0">
+                                            <span
+                                                class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3">
+                                                {{ dept.failure_count }}
+                                            </span>
+                                        </td>
+                                        <td class="pe-4 py-3 border-bottom-0">
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1 me-3 shadow-inset"
+                                                    style="height: 10px; border-radius: 10px; background-color: #e9ecef;">
+                                                    <div class="progress-bar {% if dept.transparency_score < 50 %}bg-danger{% elif dept.transparency_score < 80 %}bg-warning{% else %}bg-success{% endif %}"
+                                                        role="progressbar"
+                                                        style="width: {{ dept.transparency_score|default:0 }}%; border-radius: 10px;"
+                                                        aria-valuenow="{{ dept.transparency_score|default:0 }}"
+                                                        aria-valuemin="0" aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <span
+                                                    class="fw-bold small {% if dept.transparency_score < 50 %}text-danger{% elif dept.transparency_score < 80 %}text-warning{% else %}text-success{% endif %}"
+                                                    style="min-width: 45px;">
+                                                    {{ dept.transparency_score|floatformat:1 }}%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5 text-muted border-bottom-0">
+                                            <i class="fas fa-chart-bar fa-3x mb-3 opacity-25"></i>
+                                            <p class="mb-0">No data available yet.</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaflet JS -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                try {
+                    const mapJson = '{{ map_complaints_json|escapejs }}';
+                    if (mapJson) {
+                        const mapComplaints = JSON.parse(mapJson);
+                        
+                        // Default to India or first complaint
+                        let mapCenter = [20.5937, 78.9629];
+                        let zoomLevel = 5;
+                        
+                        if (mapComplaints.length > 0) {
+                            mapCenter = [mapComplaints[0].latitude, mapComplaints[0].longitude];
+                            zoomLevel = 11;
+                        }
+                        
+                        const map = L.map('map').setView(mapCenter, zoomLevel);
+                        
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }).addTo(map);
+                        
+                        mapComplaints.forEach(function(complaint) {
+                            let color = '#3b82f6';
+                            if (complaint.urgency_level === 'critical') {
+                                color = '#ef4444';
+                            } else if (complaint.urgency_level === 'high') {
+                                color = '#f97316';
+                            } else if (complaint.urgency_level === 'medium') {
+                                color = '#f59e0b';
+                            }
+                            
+                            const marker = L.circleMarker([complaint.latitude, complaint.longitude], {
+                                radius: 8,
+                                fillColor: color,
+                                color: '#fff',
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 0.8
+                            }).addTo(map);
+                            
+                            const popupContent = `
+                                <div style="font-family: 'Inter', sans-serif; padding: 5px; min-width: 180px;">
+                                    <h6 style="margin: 0 0 5px 0; font-weight: 700; color: #1e3a8a;">#${complaint.id}: ${complaint.title}</h6>
+                                    <p style="margin: 0 0 8px 0; font-size: 0.8rem; color: #4b5563;">City: ${complaint.city}, State: ${complaint.state}</p>
+                                    <div style="display: flex; gap: 5px; margin-bottom: 8px;">
+                                        <span class="badge" style="background-color: ${color}; color: white; font-size: 0.7rem; padding: 3px 6px;">Urgency: ${complaint.urgency_level}</span>
+                                        <span class="badge bg-secondary" style="font-size: 0.7rem; padding: 3px 6px;">Status: ${complaint.status}</span>
+                                    </div>
+                                    <a href="/complaints/detail/${complaint.id}/" class="btn btn-primary btn-sm text-white" style="font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; display: inline-block;">View Detail</a>
+                                </div>
+                            `;
+                            marker.bindPopup(popupContent);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error initializing map:', error);
+                }
+            });
+        </script>
+        {% endblock %}
+
+        {% block extra_css %}
+        <!-- Leaflet CSS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+        {% endblock %}

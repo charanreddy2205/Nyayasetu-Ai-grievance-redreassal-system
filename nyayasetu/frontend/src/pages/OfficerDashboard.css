@@ -1,0 +1,108 @@
+.officer-dashboard-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  box-sizing: border-box;
+}
+
+.welcome-banner-officer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, var(--primary-navy), var(--primary-navy-light));
+  border-radius: var(--radius-md);
+  padding: 1.5rem 2rem;
+  box-shadow: var(--shadow-sm);
+  color: white;
+}
+
+.welcome-banner-officer h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.welcome-banner-officer .welcome-sub {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin: 0.35rem 0 0 0;
+}
+
+.welcome-banner-officer .welcome-sub strong {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Officer specific stats row */
+.officer-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.o-stat-card {
+  background-color: white;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-normal);
+}
+
+.o-stat-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.o-stat-card.warning-border {
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.o-stat-icon {
+  height: 44px;
+  width: 44px;
+  border-radius: 10px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.o-stat-icon.blue-bg { background-color: var(--primary-blue); }
+.o-stat-icon.orange-bg { background-color: var(--saffron); }
+.o-stat-icon.green-bg { background-color: var(--green); }
+.o-stat-icon.red-bg { background-color: #dc2626; }
+
+.o-stat-info h4 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--primary-navy);
+}
+
+.o-stat-info span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.location-cell {
+  display: block;
+  max-width: 150px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--text-dark);
+}

@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-8">
+            <h2 class="display-5 fw-bold mb-1"
+                style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                Citizen Dashboard
+            </h2>
+            <p class="text-muted mb-0 lead">
+                Welcome back, <span class="fw-bold text-primary position-relative">{{ user.username }}
+                    <span class="position-absolute bottom-0 start-0 w-100"
+                        style="height: 3px; background: var(--primary-gradient); opacity: 0.3;"></span></span>
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'create_complaint' %}" class="btn btn-primary shadow-lg position-relative overflow-hidden">
+                <i class="fas fa-plus-circle me-2"></i>New Complaint
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- Main Stats Card -->
+        <div class="col-lg-4">
+            <div
+                class="card stat-card bg-primary text-white h-100 border-0 shadow-lg overflow-hidden position-relative">
+                <div class="card-body position-relative z-1 p-4 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <div class="text-white-50 small fw-bold text-uppercase letter-spacing-1 mb-1">Total
+                                Complaints</div>
+                            <h2 class="display-3 fw-bold mb-0">{{ total_complaints }}</h2>
+                        </div>
+                        <div class="icon-shape bg-white bg-opacity-25 rounded-circle p-3 shadow-sm backdrop-blur">
+                            <i class="fas fa-file-signature fa-2x text-white"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <span
+                            class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 rounded-pill px-3 py-2">
+                            <i class="fas fa-chart-line me-1"></i> Lifetime Activity
+                        </span>
+                    </div>
+                </div>
+                <!-- Decorative Circles -->
+                <div class="position-absolute top-0 end-0 translate-middle-y me-n5 mt-n5 rounded-circle bg-white opacity-10"
+                    style="width: 200px; height: 200px;"></div>
+                <div class="position-absolute bottom-0 start-0 translate-middle-x ms-n5 mb-n5 rounded-circle bg-white opacity-10"
+                    style="width: 150px; height: 150px;"></div>
+            </div>
+        </div>
+
+        <!-- Status Overview Cards -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg h-100 glass overflow-hidden">
+                <div class="card-header bg-transparent border-0 py-3 px-4">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-chart-pie me-2 text-primary"></i>Status Overview
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        {% for stat in status_counts %}
+                        <div class="col-md-6 col-lg-3">
+                            <div
+                                class="p-3 rounded-4 bg-white border border-light shadow-sm text-center h-100 transition-hover">
+                                <div
+                                    class="mb-3 d-inline-flex align-items-center justify-content-center p-3 rounded-circle {% if stat.status == 'resolved' %}status-resolved{% elif stat.status == 'pending' %}status-pending{% else %}status-other{% endif %}">
+                                    <i
+                                        class="fas fa-{% if stat.status == 'resolved' %}check-circle{% elif stat.status == 'pending' %}clock{% else %}info-circle{% endif %} fa-lg"></i>
+                                </div>
+                                <h3 class="fw-bold text-dark mb-1">{{ stat.count }}</h3>
+                                <small class="text-uppercase text-muted fw-bold"
+                                    style="font-size: 0.7rem; letter-spacing: 0.5px;">{{ stat.status|title }}</small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <div class="mb-3 opacity-25">
+                                <i class="fas fa-clipboard-list fa-4x text-muted"></i>
+                            </div>
+                            <p class="text-muted">No complaints found. Start by filing one!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- City-Wide Statistics Section -->
+    <div class="row mb-4 fade-in-up" style="animation-delay: 0.1s;">
+        <div class="col-12">
+            <h4 class="fw-bold mb-3 text-gray-800 border-bottom pb-2">
+                <i class="fas fa-city me-2 text-primary"></i>City-Wide Statistics
+            </h4>
+        </div>
+    </div>
+
+    <!-- Global Summary Cards -->
+    <div class="row mb-5 g-3 justify-content-center">
+        <div class="col-md-2">
+            <a href="{% url 'my_complaints' %}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 bg-primary text-white transition-hover">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                <i class="fas fa-file-alt fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="display-6 fw-bold mb-1">{{ user_total_complaints }}</h3>
+                        <p class="mb-0 text-white-50 small text-uppercase fw-bold letter-spacing-1">Total</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'my_complaints' %}?status=resolved" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 bg-success text-white transition-hover">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="display-6 fw-bold mb-1">{{ user_resolved }}</h3>
+                        <p class="mb-0 text-white-50 small text-uppercase fw-bold letter-spacing-1">Resolved</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'my_complaints' %}?status=pending" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 bg-warning text-white transition-hover">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="display-6 fw-bold mb-1">{{ user_pending }}</h3>
+                        <p class="mb-0 text-white-50 small text-uppercase fw-bold letter-spacing-1">Pending</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'my_complaints' %}?overdue=true" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 bg-danger text-white transition-hover">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                <i class="fas fa-exclamation-circle fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="display-6 fw-bold mb-1">{{ user_overdue }}</h3>
+                        <p class="mb-0 text-white-50 small text-uppercase fw-bold letter-spacing-1">Overdue</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'my_complaints' %}?status=administrative_failure" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 bg-dark text-white transition-hover">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="display-6 fw-bold mb-1">{{ user_admin_failure }}</h3>
+                        <p class="mb-0 text-white-50 small text-uppercase fw-bold letter-spacing-1">Failures</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Detailed Department Analysis -->
+    <div class="row fade-in-up" style="animation-delay: 0.2s;">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-header bg-white border-0 py-3 px-4 d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-list-ol me-2 text-primary"></i>Department
+                        Analysis
+                    </h5>
+                    <span class="badge bg-light text-dark border shadow-sm">Ordered by Transparency Score</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3 text-uppercase text-muted small fw-bold border-0">Rank</th>
+                                    <th class="py-3 text-uppercase text-muted small fw-bold border-0">Department</th>
+                                    <th class="py-3 text-center text-uppercase text-muted small fw-bold border-0">Total
+                                    </th>
+                                    <th class="py-3 text-center text-uppercase text-muted small fw-bold border-0">
+                                        Resolved</th>
+                                    <th class="py-3 text-center text-uppercase text-muted small fw-bold border-0">
+                                        Failures</th>
+                                    <th class="pe-4 py-3 text-uppercase text-muted small fw-bold border-0"
+                                        style="width: 30%;">Transparency Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dept in departments %}
+                                <tr>
+                                    <td class="ps-4 py-3 border-bottom-0">
+                                        <span
+                                            class="badge bg-secondary bg-opacity-10 text-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
+                                            style="width: 30px; height: 30px;">
+                                            {{ forloop.counter }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 border-bottom-0">
+                                        <div class="fw-bold text-dark">{{ dept.name }}</div>
+                                        <small class="text-muted d-block text-truncate" style="max-width: 250px;">{{
+                                            dept.description }}</small>
+                                    </td>
+                                    <td class="text-center fw-bold py-3 border-bottom-0">{{ dept.total_complaints }}
+                                    </td>
+                                    <td class="text-center py-3 border-bottom-0">
+                                        <span
+                                            class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3">
+                                            {{ dept.resolved_count }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center py-3 border-bottom-0">
+                                        <span
+                                            class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3">
+                                            {{ dept.failure_count }}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4 py-3 border-bottom-0">
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-3 shadow-inset"
+                                                style="height: 10px; border-radius: 10px; background-color: #e9ecef;">
+                                                <div class="progress-bar {% if dept.transparency_score < 50 %}bg-danger{% elif dept.transparency_score < 80 %}bg-warning{% else %}bg-success{% endif %}"
+                                                    role="progressbar"
+                                                    style="width:  {{ dept.transparency_score|default:0 }}  %; border-radius: 10px;"
+                                                    aria-valuenow="{{ dept.transparency_score|default:0 }}"
+                                                    aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="fw-bold small {% if dept.transparency_score < 50 %}text-danger{% elif dept.transparency_score < 80 %}text-warning{% else %}text-success{% endif %}"
+                                                style="min-width: 45px;">
+                                                {{ dept.transparency_score|floatformat:1 }}%
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted border-bottom-0">
+                                        <i class="fas fa-chart-bar fa-3x mb-3 opacity-25"></i>
+                                        <p class="mb-0">No data available yet.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .letter-spacing-1 {
+        letter-spacing: 1px;
+    }
+
+    .shadow-inset {
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+    }
+
+    .backdrop-blur {
+        backdrop-filter: blur(5px);
+    }
+
+    .transition-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+    }
+
+    .status-resolved {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .status-pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .status-other {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+</style>
+{% endblock %}

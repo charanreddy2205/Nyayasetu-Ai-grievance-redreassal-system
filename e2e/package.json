@@ -1,0 +1,14 @@
+{
+  "name": "nyayasetu-e2e",
+  "version": "1.0.0",
+  "description": "End-to-End Test Suite for NyayaSetu via Playwright",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.1",
+    "@playwright/test": "^1.49.1"
+  }
+}
