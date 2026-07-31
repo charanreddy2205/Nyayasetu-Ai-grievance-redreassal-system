@@ -95,11 +95,11 @@ services:
       - key: VITE_API_URL
         value: "https://nyayasetu-backend.onrender.com"
 
-databases:
-  - name: nyayasetu-db
-    plan: free
-
   - type: redis
     name: nyayasetu-redis
     plan: free
     ipAllowList: []
+
+databases:
+  - name: nyayasetu-db
+    plan: free
