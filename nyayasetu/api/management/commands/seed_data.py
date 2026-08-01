@@ -97,17 +97,20 @@ class Command(BaseCommand):
         ]
         has_us_states = Complaint.objects.filter(state__in=us_states).exists()
         
-        if out_of_bounds.exists() or lacking_escalations or has_us_states or kwargs.get('clear'):
-            self.stdout.write(self.style.WARNING("Found legacy data (or lacking escalations/--clear passed). Wiping all complaints to re-seed timelines..."))
+        # Check for rogue fake users that aren't our deterministic users
+        allowed_usernames = ['citizen1', 'citizen2', 'admin']
+        for d in departments:
+            prefix = d.name.split()[0].lower()
+            allowed_usernames.extend([f'{prefix}_staff', f'{prefix}_hod', f'{prefix}_do'])
+            
+        rogues_exist = User.objects.exclude(username__in=allowed_usernames).exists()
+        
+        if out_of_bounds.exists() or lacking_escalations or has_us_states or rogues_exist or kwargs.get('clear'):
+            self.stdout.write(self.style.WARNING("Found legacy data, rogue users, or --clear passed. Wiping all complaints to re-seed timelines..."))
             ComplaintComment.all_objects.all().hard_delete()
             EscalationLog.objects.all().delete()
             Complaint.all_objects.all().hard_delete()
             
-            # Wipe rogue fake users that aren't our deterministic users
-            allowed_usernames = ['citizen1', 'citizen2', 'admin']
-            for d in departments:
-                prefix = d.name.split()[0].lower()
-                allowed_usernames.extend([f'{prefix}_staff', f'{prefix}_hod', f'{prefix}_do'])
             User.objects.exclude(username__in=allowed_usernames).delete()
             self.stdout.write("Purged rogue fake users.")
             
