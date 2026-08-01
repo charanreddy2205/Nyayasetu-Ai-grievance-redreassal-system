@@ -83,6 +83,16 @@ def custom_exception_handler(exc, context) -> Response:
             "errors": errors
         }
     else:
+        # Catch our custom non-DRF exceptions
+        if isinstance(exc, ValidationException):
+            return validation_error(errors=exc.errors or {}, message=exc.message)
+        elif isinstance(exc, PermissionDeniedException):
+            return permission_denied(message=exc.message)
+        elif isinstance(exc, NotFoundException):
+            return not_found(message=exc.message)
+        elif isinstance(exc, APIException):
+            return error_response(message=exc.message, status=exc.status_code)
+
         logger.error(f"Uncaught server exception: {exc}", exc_info=exc)
         response = Response({
             "success": False,
