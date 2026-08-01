@@ -46,6 +46,16 @@ class Command(BaseCommand):
                 self.stdout.write(f'Created officer {officer.username} for {dept.name}')
             else:
                 officers.append(User.objects.filter(department=dept).first())
+                
+        # 3.5 Create an admin superuser for testing and dashboard access
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser(
+                username='admin',
+                email='admin@example.com',
+                password='admin',
+                role='state_admin'
+            )
+            self.stdout.write(self.style.SUCCESS('Created superuser account: username="admin", password="admin"'))
             
         # 4. Create complaints
         self.stdout.write(f'Creating {count} complaints...')
