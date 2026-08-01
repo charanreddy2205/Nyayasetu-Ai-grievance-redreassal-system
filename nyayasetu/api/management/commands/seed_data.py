@@ -24,9 +24,13 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING('Database already contains data! Skipping seed.'))
             return
 
-        # 1. Create a few departments
+        # 1. Create a few specific departments matching our AI fallback config
         self.stdout.write('Creating departments...')
-        departments = DepartmentFactory.create_batch(5)
+        dept_names = ['Electricity & Power', 'Water & Sewage', 'Road & Safety', 'Sanitation & Waste']
+        departments = []
+        for name in dept_names:
+            dept = DepartmentFactory(name=name)
+            departments.append(dept)
         
         # 2. Create citizens
         self.stdout.write('Creating citizens...')

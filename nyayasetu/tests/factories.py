@@ -44,3 +44,9 @@ class ComplaintFactory(factory.django.DjangoModelFactory):
     department = factory.SubFactory(DepartmentFactory)
     status = 'pending'
     urgency_level = 'medium'
+    address = factory.Faker('street_address')
+    city = factory.Faker('city')
+    state = factory.Faker('state')
+    pincode = factory.Faker('postcode')
+    latitude = factory.Faker('latitude')
+    longitude = factory.Faker('longitude')

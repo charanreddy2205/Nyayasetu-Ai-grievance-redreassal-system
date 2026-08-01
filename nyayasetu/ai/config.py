@@ -34,15 +34,19 @@ FALLBACK_DEPARTMENT_KEYWORDS = {
     'Electricity & Power': [
         'power', 'electricity', 'electric', 'pole', 'light', 'outage', 
         'transformer', 'wire', 'shock', 'blackout', 'bulb', 'short circuit', 
-        'spark', 'cable', 'current'
+        'spark', 'cable', 'current', 'streetlight', 'streetlights', 'lamp'
     ],
     'Water & Sewage': [
         'drain', 'drainage', 'sewage', 'sewer', 'water leak', 'overflow', 
         'leakage', 'stink', 'dirty water', 'clog', 'pipe', 'gutter', 
-        'blockage', 'manhole'
+        'blockage', 'manhole', 'pipeline'
     ],
     'Road & Safety': [
         'road', 'pothole', 'traffic', 'safety', 'street', 'path', 'accident', 
         'cracks', 'construction', 'asphalt', 'sidewalk', 'divider', 'pavement'
+    ],
+    'Sanitation & Waste': [
+        'garbage', 'trash', 'waste', 'dump', 'smell', 'dustbin', 'sweeper',
+        'clean', 'sanitation', 'debris', 'rubbish', 'litter'
     ]
 }
