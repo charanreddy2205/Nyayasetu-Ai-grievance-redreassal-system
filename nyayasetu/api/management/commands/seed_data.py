@@ -107,9 +107,9 @@ class Command(BaseCommand):
         
         if out_of_bounds.exists() or lacking_escalations or has_us_states or rogues_exist or kwargs.get('clear'):
             self.stdout.write(self.style.WARNING("Found legacy data, rogue users, or --clear passed. Wiping all complaints to re-seed timelines..."))
-            ComplaintComment.all_objects.all().hard_delete()
+            ComplaintComment.all_objects.all().delete()
             EscalationLog.objects.all().delete()
-            Complaint.all_objects.all().hard_delete()
+            Complaint.all_objects.all().delete()
             
             User.objects.exclude(username__in=allowed_usernames).delete()
             self.stdout.write("Purged rogue fake users.")
