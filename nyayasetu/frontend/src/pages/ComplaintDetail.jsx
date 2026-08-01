@@ -391,13 +391,13 @@ export const ComplaintDetail = () => {
           </div>
 
           {/* Officer Quick Actions Panel */}
-          {isAssignedOfficer && (complaint.status === 'pending' || complaint.status === 'in_progress') && (
+          {isAssignedOfficer && (complaint.status === 'pending' || complaint.status === 'in_progress' || complaint.status === 'escalated') && (
             <div className="detail-card card-box border-blue-panel">
               <h3 className="sub-section-title">Officer Actions</h3>
               <p className="desc-small">Update the current status of this grievance. Ensure you attach site verification photo updates in comments below.</p>
               
               <div className="action-buttons-flex">
-                {complaint.status === 'pending' && (
+                {(complaint.status === 'pending' || complaint.status === 'escalated') && (
                   <button 
                     onClick={() => handleStatusUpdate('in_progress')}
                     className="btn-action-status in-progress"

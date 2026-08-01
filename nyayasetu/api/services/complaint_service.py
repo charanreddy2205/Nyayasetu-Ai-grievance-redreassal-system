@@ -97,10 +97,10 @@ class ComplaintService:
 
         # Access check
         has_access = (
-            complaint.created_by == user or
-            complaint.assigned_to == user or
+            complaint.created_by_id == user.id or
+            complaint.assigned_to_id == user.id or
             user.role == ROLE_STATE_ADMIN or
-            (user.role != ROLE_CITIZEN and user.department == complaint.department)
+            (user.role != ROLE_CITIZEN and user.department_id == complaint.department_id)
         )
         if not has_access:
             raise PermissionDeniedException("You do not have access to view this complaint.")

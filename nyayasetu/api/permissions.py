@@ -34,5 +34,5 @@ class IsComplaintParticipant(permissions.BasePermission):
         if request.user.role == ROLE_STATE_ADMIN:
             return True
         if request.user.role == ROLE_CITIZEN:
-            return obj.created_by == request.user
-        return obj.department == request.user.department
+            return obj.created_by_id == request.user.id
+        return obj.department_id == request.user.department_id
