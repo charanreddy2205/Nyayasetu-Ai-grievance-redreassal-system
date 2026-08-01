@@ -75,20 +75,24 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS('Created superuser account: username="admin", password="admin"'))
             
-        # 4. Create complaints
-        self.stdout.write(f'Creating {count} complaints...')
-        for _ in range(count):
-            citizen = random.choice(citizens)
-            department = random.choice(departments)
-            status = random.choice(['pending', 'in_progress', 'resolved', 'escalated'])
-            urgency = random.choice(['low', 'medium', 'high', 'critical'])
-            
-            ComplaintFactory(
-                created_by=citizen,
-                department=department,
-                status=status,
-                urgency_level=urgency
-            )
+        # 4. Create complaints only if none exist
+        if Complaint.objects.count() == 0:
+            self.stdout.write(f'Creating {count} complaints...')
+            for _ in range(count):
+                citizen = random.choice(citizens)
+                department = random.choice(departments)
+                status = random.choice(['pending', 'in_progress', 'resolved', 'escalated'])
+                urgency = random.choice(['low', 'medium', 'high', 'critical'])
+                
+                ComplaintFactory(
+                    created_by=citizen,
+                    department=department,
+                    status=status,
+                    urgency_level=urgency
+                )
+            self.stdout.write(self.style.SUCCESS(f'Created {count} initial complaints.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'Database already contains {Complaint.objects.count()} complaints. Skipping fake complaint generation.'))
             
         self.stdout.write(self.style.SUCCESS(f'Successfully seeded the database!'))
         self.stdout.write(self.style.SUCCESS(f'Created {len(departments)} departments, {len(citizens)} citizens, {len(officers)} officers, and {count} complaints.'))

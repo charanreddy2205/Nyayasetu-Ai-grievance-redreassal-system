@@ -5,7 +5,10 @@ from departments.models import Department
 from complaints.models import Complaint
 from api.constants import ROLE_CITIZEN, ROLE_STAFF
 
-fake = Faker()
+import random
+from decimal import Decimal
+
+fake = Faker('en_IN')
 User = get_user_model()
 
 class DepartmentFactory(factory.django.DjangoModelFactory):
@@ -48,5 +51,6 @@ class ComplaintFactory(factory.django.DjangoModelFactory):
     city = factory.Faker('city')
     state = factory.Faker('state')
     pincode = factory.Faker('postcode')
-    latitude = factory.Faker('latitude')
-    longitude = factory.Faker('longitude')
+    # India rough bounding box: Lat 8.0 to 37.0, Lon 68.0 to 97.0
+    latitude = factory.LazyFunction(lambda: Decimal(str(round(random.uniform(8.0, 37.0), 6))))
+    longitude = factory.LazyFunction(lambda: Decimal(str(round(random.uniform(68.0, 97.0), 6))))
