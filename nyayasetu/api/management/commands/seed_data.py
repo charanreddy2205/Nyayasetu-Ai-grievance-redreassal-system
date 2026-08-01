@@ -19,29 +19,33 @@ class Command(BaseCommand):
         
         self.stdout.write('Starting database seed process...')
         
-        # Check if we already have some data to prevent huge duplication
-        if Department.objects.count() > 0:
-            self.stdout.write(self.style.WARNING('Database already contains data! Skipping seed.'))
-            return
-
-        # 1. Create a few specific departments matching our AI fallback config
-        self.stdout.write('Creating departments...')
+        # 1. Create or ensure core specific departments exist
+        self.stdout.write('Checking core departments...')
         dept_names = ['Electricity & Power', 'Water & Sewage', 'Road & Safety', 'Sanitation & Waste']
         departments = []
         for name in dept_names:
-            dept = DepartmentFactory(name=name)
+            dept, created = Department.objects.get_or_create(name=name)
             departments.append(dept)
+            if created:
+                self.stdout.write(f'Created missing core department: {name}')
         
-        # 2. Create citizens
-        self.stdout.write('Creating citizens...')
-        citizens = CitizenFactory.create_batch(10)
-        
-        # 3. Create officers for the departments
-        self.stdout.write('Creating officers...')
+        # 2. Create citizens if we have too few
+        if User.objects.filter(role='citizen').count() < 5:
+            self.stdout.write('Creating citizens...')
+            citizens = CitizenFactory.create_batch(10)
+        else:
+            citizens = User.objects.filter(role='citizen')
+            
+        # 3. Create officers for the core departments if they lack them
+        self.stdout.write('Ensuring officers for core departments...')
         officers = []
         for dept in departments:
-            officer = OfficerFactory(department=dept)
-            officers.append(officer)
+            if not User.objects.filter(department=dept).exists():
+                officer = OfficerFactory(department=dept)
+                officers.append(officer)
+                self.stdout.write(f'Created officer {officer.username} for {dept.name}')
+            else:
+                officers.append(User.objects.filter(department=dept).first())
             
         # 4. Create complaints
         self.stdout.write(f'Creating {count} complaints...')

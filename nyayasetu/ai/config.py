@@ -34,19 +34,24 @@ FALLBACK_DEPARTMENT_KEYWORDS = {
     'Electricity & Power': [
         'power', 'electricity', 'electric', 'pole', 'light', 'outage', 
         'transformer', 'wire', 'shock', 'blackout', 'bulb', 'short circuit', 
-        'spark', 'cable', 'current', 'streetlight', 'streetlights', 'lamp'
+        'spark', 'cable', 'current', 'streetlight', 'streetlights', 'lamp',
+        'grid', 'voltage', 'electrocution', 'meter', 'switch', 'generator', 'phase'
     ],
     'Water & Sewage': [
         'drain', 'drainage', 'sewage', 'sewer', 'water leak', 'overflow', 
         'leakage', 'stink', 'dirty water', 'clog', 'pipe', 'gutter', 
-        'blockage', 'manhole', 'pipeline'
+        'blockage', 'manhole', 'pipeline', 'drinking water', 'tap', 'plumbing',
+        'flooding', 'sanitation', 'mud', 'contaminated', 'tank'
     ],
     'Road & Safety': [
         'road', 'pothole', 'traffic', 'safety', 'street', 'path', 'accident', 
-        'cracks', 'construction', 'asphalt', 'sidewalk', 'divider', 'pavement'
+        'cracks', 'construction', 'asphalt', 'sidewalk', 'divider', 'pavement',
+        'speed bump', 'signboard', 'crossing', 'highway', 'lane', 'intersection',
+        'bridge', 'traffic light', 'block'
     ],
     'Sanitation & Waste': [
         'garbage', 'trash', 'waste', 'dump', 'smell', 'dustbin', 'sweeper',
-        'clean', 'sanitation', 'debris', 'rubbish', 'litter'
+        'clean', 'sanitation', 'debris', 'rubbish', 'litter', 'recycling', 
+        'compost', 'landfill', 'pollution', 'odor', 'stagnant'
     ]
 }
