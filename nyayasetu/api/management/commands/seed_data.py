@@ -77,30 +77,95 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS('Created superuser account: username="admin", password="admin"'))
             
-        # 3.8 Identify and wipe legacy out-of-bounds data
+        # 3.8 Identify and wipe legacy out-of-bounds data or data lacking escalations
+        from escalation.models import EscalationLog
         out_of_bounds = Complaint.objects.filter(
             Q(latitude__lt=8.0) | Q(latitude__gt=37.0) | 
             Q(longitude__lt=68.0) | Q(longitude__gt=97.0)
         )
-        if out_of_bounds.exists() or kwargs.get('clear'):
-            self.stdout.write(self.style.WARNING("Found legacy complaints outside India (or --clear passed). Wiping all complaints to re-seed..."))
+        lacking_escalations = EscalationLog.objects.count() == 0
+        
+        if out_of_bounds.exists() or lacking_escalations or kwargs.get('clear'):
+            self.stdout.write(self.style.WARNING("Found legacy data (or lacking escalations/--clear passed). Wiping all complaints to re-seed timelines..."))
             Complaint.objects.all().delete()
+            EscalationLog.objects.all().delete()
             
         # 4. Create complaints only if none exist
         if Complaint.objects.count() == 0:
-            self.stdout.write(f'Creating {count} complaints...')
-            for _ in range(count):
+            from escalation.models import EscalationLog
+            from complaints.models import ComplaintComment
+            from django.utils import timezone
+            from datetime import timedelta
+            
+            self.stdout.write(f'Creating {count} complaints with realistic timelines and escalations...')
+            
+            # Identify the state admin
+            state_admin = User.objects.filter(role='state_admin').first()
+            
+            for i in range(count):
                 citizen = random.choice(citizens)
                 department = random.choice(departments)
-                status = random.choice(['pending', 'in_progress', 'resolved', 'escalated'])
+                status = random.choice(['pending', 'in_progress', 'resolved'])
                 urgency = random.choice(['low', 'medium', 'high', 'critical'])
                 
-                ComplaintFactory(
+                # Assign initially to staff
+                staff = User.objects.filter(department=department, role='staff').first()
+                hod = User.objects.filter(department=department, role='hod').first()
+                do = User.objects.filter(department=department, role='district_officer').first()
+                
+                creation_time = timezone.now() - timedelta(days=random.randint(1, 15))
+                
+                complaint = ComplaintFactory(
                     created_by=citizen,
                     department=department,
+                    assigned_to=staff,
                     status=status,
                     urgency_level=urgency
                 )
+                
+                # Backdate the creation time for timeline realism
+                Complaint.objects.filter(id=complaint.id).update(created_at=creation_time)
+                
+                # Determine if this complaint should be escalated (about 30% chance)
+                should_escalate = random.random() < 0.3
+                
+                if should_escalate and status != 'resolved':
+                    complaint.status = 'escalated'
+                    # Determine escalation depth (1=HOD, 2=DO, 3=State Admin)
+                    depth = random.choice([1, 2, 3])
+                    current_time = creation_time + timedelta(days=1)
+                    
+                    if depth >= 1 and hod:
+                        EscalationLog.objects.create(
+                            complaint=complaint, escalated_to=hod,
+                            reason="SLA Breached at Staff level."
+                        )
+                        EscalationLog.objects.filter(id=EscalationLog.objects.last().id).update(escalated_at=current_time)
+                        complaint.assigned_to = hod
+                        complaint.escalation_level = 1
+                        
+                    if depth >= 2 and do:
+                        current_time += timedelta(days=2)
+                        EscalationLog.objects.create(
+                            complaint=complaint, escalated_to=do,
+                            reason="SLA Breached at HOD level."
+                        )
+                        EscalationLog.objects.filter(id=EscalationLog.objects.last().id).update(escalated_at=current_time)
+                        complaint.assigned_to = do
+                        complaint.escalation_level = 2
+                        
+                    if depth == 3 and state_admin:
+                        current_time += timedelta(days=3)
+                        EscalationLog.objects.create(
+                            complaint=complaint, escalated_to=state_admin,
+                            reason="SLA Breached at District Officer level."
+                        )
+                        EscalationLog.objects.filter(id=EscalationLog.objects.last().id).update(escalated_at=current_time)
+                        complaint.assigned_to = state_admin
+                        complaint.escalation_level = 3
+                        
+                    complaint.save()
+                    
             self.stdout.write(self.style.SUCCESS(f'Created {count} initial complaints.'))
         else:
             self.stdout.write(self.style.WARNING(f'Database already contains {Complaint.objects.count()} complaints. Skipping fake complaint generation.'))
