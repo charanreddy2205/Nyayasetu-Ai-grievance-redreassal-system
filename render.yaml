@@ -49,6 +49,12 @@ services:
         source: /media/*
         destination: https://nyayasetu-backend-wutc.onrender.com/media/*
       - type: rewrite
+        source: /admin/*
+        destination: https://nyayasetu-backend-wutc.onrender.com/admin/*
+      - type: rewrite
+        source: /static/*
+        destination: https://nyayasetu-backend-wutc.onrender.com/static/*
+      - type: rewrite
         source: /*
         destination: /index.html
     envVars:
