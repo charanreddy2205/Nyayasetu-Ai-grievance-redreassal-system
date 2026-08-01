@@ -89,17 +89,23 @@ class ComplaintViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         base_query = Complaint.objects.select_related('department', 'assigned_to', 'created_by')
-        print("DEBUG get_queryset USER:", user, "ROLE:", getattr(user, 'role', 'No Role'))
+        
         if user.role == 'citizen':
-            qs = base_query.filter(created_by=user)
-            print("DEBUG SQL:", str(qs.query))
-            return qs
+            return base_query.filter(created_by=user)
+            
         elif user.role == 'state_admin':
-            return base_query.all()
-        else:
-            if user.department:
-                return base_query.filter(department=user.department)
-            return base_query.none()
+            return base_query.filter(escalation_level__gte=3)
+            
+        elif user.department:
+            dept_query = base_query.filter(department=user.department)
+            if user.role == 'staff':
+                return dept_query.filter(escalation_level__gte=0)
+            elif user.role == 'hod':
+                return dept_query.filter(escalation_level__gte=1)
+            elif user.role == 'district_officer':
+                return dept_query.filter(escalation_level__gte=2)
+                
+        return base_query.none()
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())

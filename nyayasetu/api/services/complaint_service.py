@@ -95,13 +95,19 @@ class ComplaintService:
         except Complaint.DoesNotExist:
             raise NotFoundException(f"Grievance #{complaint_id} not found.")
 
-        # Access check
-        has_access = (
-            complaint.created_by_id == user.id or
-            complaint.assigned_to_id == user.id or
-            user.role == ROLE_STATE_ADMIN or
-            (user.role != ROLE_CITIZEN and user.department_id == complaint.department_id)
-        )
+        # Access check based on hierarchical visibility
+        has_access = False
+        if complaint.created_by_id == user.id or complaint.assigned_to_id == user.id:
+            has_access = True
+        elif user.role == ROLE_STATE_ADMIN and complaint.escalation_level >= 3:
+            has_access = True
+        elif user.role != ROLE_CITIZEN and user.department_id == complaint.department_id:
+            if user.role == ROLE_STAFF and complaint.escalation_level >= 0:
+                has_access = True
+            elif user.role == ROLE_HOD and complaint.escalation_level >= 1:
+                has_access = True
+            elif user.role == ROLE_DISTRICT_OFFICER and complaint.escalation_level >= 2:
+                has_access = True
         if not has_access:
             raise PermissionDeniedException("You do not have access to view this complaint.")
 

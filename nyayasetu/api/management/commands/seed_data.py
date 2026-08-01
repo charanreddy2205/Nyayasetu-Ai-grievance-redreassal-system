@@ -12,7 +12,7 @@ class Command(BaseCommand):
     help = 'Seeds the database with dummy data for demonstration'
 
     def add_arguments(self, parser):
-        parser.add_argument('--count', type=int, default=30, help='Number of complaints to generate')
+        parser.add_argument('--count', type=int, default=50, help='Number of complaints to generate')
         parser.add_argument('--clear', action='store_true', help='Clear existing complaints before seeding')
 
     @transaction.atomic
@@ -137,8 +137,8 @@ class Command(BaseCommand):
                 # Backdate the creation time for timeline realism
                 Complaint.objects.filter(id=complaint.id).update(created_at=creation_time)
                 
-                # Determine if this complaint should be escalated (about 30% chance)
-                should_escalate = random.random() < 0.3
+                # Determine if this complaint should be escalated (about 40% chance)
+                should_escalate = random.random() < 0.4
                 
                 if should_escalate and status != 'resolved':
                     complaint.status = 'escalated'

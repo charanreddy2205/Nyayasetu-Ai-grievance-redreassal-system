@@ -31,8 +31,21 @@ class IsComplaintParticipant(permissions.BasePermission):
     def has_object_permission(self, request: Any, view: Any, obj: Any) -> bool:
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role == ROLE_STATE_ADMIN:
-            return True
         if request.user.role == ROLE_CITIZEN:
             return obj.created_by_id == request.user.id
-        return obj.department_id == request.user.department_id
+            
+        if obj.assigned_to_id == request.user.id:
+            return True
+            
+        if request.user.role == ROLE_STATE_ADMIN:
+            return obj.escalation_level >= 3
+            
+        if obj.department_id == request.user.department_id:
+            if request.user.role == ROLE_STAFF:
+                return obj.escalation_level >= 0
+            if request.user.role == ROLE_HOD:
+                return obj.escalation_level >= 1
+            if request.user.role == ROLE_DISTRICT_OFFICER:
+                return obj.escalation_level >= 2
+                
+        return False

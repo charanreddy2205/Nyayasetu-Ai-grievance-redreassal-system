@@ -290,13 +290,20 @@ export const OfficerDashboard = () => {
                       </span>
                     </td>
                     <td>
-                      <button className="btn-table-action" onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/complaints/${complaint.id}`);
-                      }}>
-                        Review
-                        <ChevronRight size={14} />
-                      </button>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                        <button className="btn-table-action" onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/complaints/${complaint.id}`);
+                        }}>
+                          Review
+                          <ChevronRight size={14} />
+                        </button>
+                        {(!complaint.assignedTo || complaint.assignedTo.username !== user?.username) && (
+                          <span style={{ fontSize: '10px', color: '#888', fontWeight: '500', background: '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>
+                            Read Only
+                          </span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
