@@ -43,11 +43,17 @@ services:
     staticPublishPath: dist
     routes:
       - type: rewrite
+        source: /api
+        destination: https://nyayasetu-backend-wutc.onrender.com/api/
+      - type: rewrite
         source: /api/*
         destination: https://nyayasetu-backend-wutc.onrender.com/api/*
       - type: rewrite
         source: /media/*
         destination: https://nyayasetu-backend-wutc.onrender.com/media/*
+      - type: rewrite
+        source: /admin
+        destination: https://nyayasetu-backend-wutc.onrender.com/admin/
       - type: rewrite
         source: /admin/*
         destination: https://nyayasetu-backend-wutc.onrender.com/admin/*
