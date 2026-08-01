@@ -4,6 +4,7 @@ from departments.models import Department
 from accounts.models import User
 from complaints.models import Complaint
 from tests.factories import CitizenFactory, DepartmentFactory, OfficerFactory, ComplaintFactory
+from django.db.models import Q
 import random
 import sys
 
@@ -12,6 +13,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--count', type=int, default=30, help='Number of complaints to generate')
+        parser.add_argument('--clear', action='store_true', help='Clear existing complaints before seeding')
 
     @transaction.atomic
     def handle(self, *args, **kwargs):
@@ -74,6 +76,15 @@ class Command(BaseCommand):
                 role='state_admin'
             )
             self.stdout.write(self.style.SUCCESS('Created superuser account: username="admin", password="admin"'))
+            
+        # 3.8 Identify and wipe legacy out-of-bounds data
+        out_of_bounds = Complaint.objects.filter(
+            Q(latitude__lt=8.0) | Q(latitude__gt=37.0) | 
+            Q(longitude__lt=68.0) | Q(longitude__gt=97.0)
+        )
+        if out_of_bounds.exists() or kwargs.get('clear'):
+            self.stdout.write(self.style.WARNING("Found legacy complaints outside India (or --clear passed). Wiping all complaints to re-seed..."))
+            Complaint.objects.all().delete()
             
         # 4. Create complaints only if none exist
         if Complaint.objects.count() == 0:
