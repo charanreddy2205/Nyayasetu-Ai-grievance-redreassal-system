@@ -14,3 +14,5 @@ whitenoise==6.8.2
 gunicorn==23.0.0
 apscheduler==3.10.4
 nltk==3.8.1
+factory-boy==3.3.1
+Faker==28.0.0
