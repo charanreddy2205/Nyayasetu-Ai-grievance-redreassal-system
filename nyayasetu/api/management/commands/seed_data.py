@@ -79,6 +79,7 @@ class Command(BaseCommand):
             
         # 3.8 Identify and wipe legacy out-of-bounds data or data lacking escalations
         from escalation.models import EscalationLog
+        from complaints.models import ComplaintComment
         out_of_bounds = Complaint.objects.filter(
             Q(latitude__lt=8.0) | Q(latitude__gt=37.0) | 
             Q(longitude__lt=68.0) | Q(longitude__gt=97.0)
@@ -98,8 +99,17 @@ class Command(BaseCommand):
         
         if out_of_bounds.exists() or lacking_escalations or has_us_states or kwargs.get('clear'):
             self.stdout.write(self.style.WARNING("Found legacy data (or lacking escalations/--clear passed). Wiping all complaints to re-seed timelines..."))
-            Complaint.objects.all().delete()
+            ComplaintComment.all_objects.all().hard_delete()
             EscalationLog.objects.all().delete()
+            Complaint.all_objects.all().hard_delete()
+            
+            # Wipe rogue fake users that aren't our deterministic users
+            allowed_usernames = ['citizen1', 'citizen2', 'admin']
+            for d in departments:
+                prefix = d.name.split()[0].lower()
+                allowed_usernames.extend([f'{prefix}_staff', f'{prefix}_hod', f'{prefix}_do'])
+            User.objects.exclude(username__in=allowed_usernames).delete()
+            self.stdout.write("Purged rogue fake users.")
             
         # 4. Create complaints only if none exist
         if Complaint.objects.count() == 0:
@@ -119,10 +129,11 @@ class Command(BaseCommand):
                 status = random.choice(['pending', 'in_progress', 'resolved'])
                 urgency = random.choice(['low', 'medium', 'high', 'critical'])
                 
-                # Assign initially to staff
-                staff = User.objects.filter(department=department, role='staff').first()
-                hod = User.objects.filter(department=department, role='hod').first()
-                do = User.objects.filter(department=department, role='district_officer').first()
+                # Assign initially to staff using explicit deterministic usernames
+                prefix = department.name.split()[0].lower()
+                staff = User.objects.filter(username=f'{prefix}_staff').first()
+                hod = User.objects.filter(username=f'{prefix}_hod').first()
+                do = User.objects.filter(username=f'{prefix}_do').first()
                 
                 creation_time = timezone.now() - timedelta(days=random.randint(1, 15))
                 
