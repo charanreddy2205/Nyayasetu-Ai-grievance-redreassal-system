@@ -85,7 +85,18 @@ class Command(BaseCommand):
         )
         lacking_escalations = EscalationLog.objects.count() == 0
         
-        if out_of_bounds.exists() or lacking_escalations or kwargs.get('clear'):
+        us_states = [
+            "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
+            "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", 
+            "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", 
+            "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", 
+            "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", 
+            "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", 
+            "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+        ]
+        has_us_states = Complaint.objects.filter(state__in=us_states).exists()
+        
+        if out_of_bounds.exists() or lacking_escalations or has_us_states or kwargs.get('clear'):
             self.stdout.write(self.style.WARNING("Found legacy data (or lacking escalations/--clear passed). Wiping all complaints to re-seed timelines..."))
             Complaint.objects.all().delete()
             EscalationLog.objects.all().delete()
@@ -172,3 +183,8 @@ class Command(BaseCommand):
             
         self.stdout.write(self.style.SUCCESS(f'Successfully seeded the database!'))
         self.stdout.write(self.style.SUCCESS(f'Created {len(departments)} departments, {len(citizens)} citizens, {len(officers)} officers, and {count} complaints.'))
+        
+        # Clear dashboard cache so new states show up immediately
+        from django.core.cache import cache
+        cache.clear()
+        self.stdout.write(self.style.SUCCESS('Cleared application cache.'))

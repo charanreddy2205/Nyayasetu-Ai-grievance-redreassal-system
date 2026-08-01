@@ -16,18 +16,18 @@ class DepartmentFactory(factory.django.DjangoModelFactory):
         model = Department
 
     name = factory.LazyAttribute(lambda _: f"Dept of {fake.company()}")
-    description = factory.Faker('catch_phrase')
+    description = factory.LazyFunction(lambda: fake.catch_phrase())
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
         django_get_or_create = ('username',)
 
-    username = factory.Faker('user_name')
-    email = factory.Faker('email')
+    username = factory.LazyFunction(lambda: fake.user_name())
+    email = factory.LazyFunction(lambda: fake.email())
     password = factory.PostGenerationMethodCall('set_password', 'testpass123')
-    first_name = factory.Faker('first_name')
-    last_name = factory.Faker('last_name')
+    first_name = factory.LazyFunction(lambda: fake.first_name())
+    last_name = factory.LazyFunction(lambda: fake.last_name())
     role = ROLE_CITIZEN
 
 class CitizenFactory(UserFactory):
@@ -41,16 +41,16 @@ class ComplaintFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Complaint
 
-    title = factory.Faker('sentence')
-    description = factory.Faker('paragraph')
+    title = factory.LazyFunction(lambda: fake.sentence())
+    description = factory.LazyFunction(lambda: fake.paragraph())
     created_by = factory.SubFactory(CitizenFactory)
     department = factory.SubFactory(DepartmentFactory)
     status = 'pending'
     urgency_level = 'medium'
-    address = factory.Faker('street_address')
-    city = factory.Faker('city')
-    state = factory.Faker('state')
-    pincode = factory.Faker('postcode')
+    address = factory.LazyFunction(lambda: fake.street_address())
+    city = factory.LazyFunction(lambda: fake.city())
+    state = factory.LazyFunction(lambda: fake.state())
+    pincode = factory.LazyFunction(lambda: fake.postcode())
     # India rough bounding box: Lat 8.0 to 37.0, Lon 68.0 to 97.0
     latitude = factory.LazyFunction(lambda: Decimal(str(round(random.uniform(8.0, 37.0), 6))))
     longitude = factory.LazyFunction(lambda: Decimal(str(round(random.uniform(68.0, 97.0), 6))))
