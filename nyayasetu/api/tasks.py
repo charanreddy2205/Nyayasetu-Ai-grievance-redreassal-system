@@ -15,7 +15,7 @@ User = get_user_model()
     retry_backoff_max=600,  # Max 10 mins backoff
     name='api.tasks.process_complaint_ai_task'
 )
-def process_complaint_ai_task(self, complaint_id: int) -> dict:
+def process_complaint_ai_task(self, complaint_id: int, auto_routed: bool = False) -> dict:
     """
     Celery background task running the full AI pipeline for a complaint.
 
@@ -94,11 +94,11 @@ def process_complaint_ai_task(self, complaint_id: int) -> dict:
             complaint.sentiment_score = result.sentiment_score
             update_fields.append('sentiment_score')
 
-        if department and not complaint.department:
+        if department and (auto_routed or not complaint.department):
             complaint.department = department
             update_fields.append('department')
 
-        if assigned_officer and not complaint.assigned_to:
+        if assigned_officer and (auto_routed or not complaint.assigned_to):
             complaint.assigned_to = assigned_officer
             update_fields.append('assigned_to')
 

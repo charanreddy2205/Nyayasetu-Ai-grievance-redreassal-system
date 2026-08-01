@@ -181,8 +181,9 @@ class ComplaintService:
         # 4. Dispatch AI background task (non-blocking)
         try:
             from api.tasks import process_complaint_ai_task
-            process_complaint_ai_task.delay(complaint.id)
-            logger.info(f"[ComplaintService] AI task queued for Complaint #{complaint.id}")
+            is_auto_routed = (department_id is None)
+            process_complaint_ai_task.delay(complaint.id, auto_routed=is_auto_routed)
+            logger.info(f"[ComplaintService] AI task queued for Complaint #{complaint.id}, auto_routed={is_auto_routed}")
         except Exception as e:
             # Task dispatch failure must NEVER block complaint creation
             logger.error(f"[ComplaintService] Failed to queue AI task for Complaint #{complaint.id}: {e}")
