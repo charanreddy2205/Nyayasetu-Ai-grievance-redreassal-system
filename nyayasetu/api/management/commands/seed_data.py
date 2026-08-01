@@ -29,23 +29,41 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f'Created missing core department: {name}')
         
-        # 2. Create citizens if we have too few
-        if User.objects.filter(role='citizen').count() < 5:
-            self.stdout.write('Creating citizens...')
-            citizens = CitizenFactory.create_batch(10)
-        else:
-            citizens = User.objects.filter(role='citizen')
+        # 2. Create predictable citizens
+        if not User.objects.filter(username='citizen1').exists():
+            self.stdout.write('Creating predictable citizens...')
+            User.objects.create_user(username='citizen1', email='citizen1@example.com', password='testpass123', role='citizen', first_name='Ramesh', last_name='Kumar')
+            User.objects.create_user(username='citizen2', email='citizen2@example.com', password='testpass123', role='citizen', first_name='Suresh', last_name='Rao')
+        
+        citizens = list(User.objects.filter(role='citizen'))
             
-        # 3. Create officers for the core departments if they lack them
-        self.stdout.write('Ensuring officers for core departments...')
+        # 3. Create deterministic officers across all hierarchy levels for core departments
+        self.stdout.write('Ensuring hierarchy officers for core departments...')
         officers = []
         for dept in departments:
-            if not User.objects.filter(department=dept).exists():
-                officer = OfficerFactory(department=dept)
-                officers.append(officer)
-                self.stdout.write(f'Created officer {officer.username} for {dept.name}')
-            else:
-                officers.append(User.objects.filter(department=dept).first())
+            prefix = dept.name.split()[0].lower() # e.g., 'electricity', 'water', 'road', 'sanitation'
+            roles = [
+                ('staff', f'{prefix}_staff'),
+                ('hod', f'{prefix}_hod'),
+                ('district_officer', f'{prefix}_do')
+            ]
+            
+            for role, username in roles:
+                user, created = User.objects.get_or_create(
+                    username=username,
+                    defaults={
+                        'email': f'{username}@example.com',
+                        'role': role,
+                        'department': dept,
+                        'first_name': dept.name.split()[0],
+                        'last_name': role.upper()
+                    }
+                )
+                if created:
+                    user.set_password('testpass123')
+                    user.save()
+                    self.stdout.write(f'Created {role} officer: {username}')
+                officers.append(user)
                 
         # 3.5 Create an admin superuser for testing and dashboard access
         if not User.objects.filter(username='admin').exists():
