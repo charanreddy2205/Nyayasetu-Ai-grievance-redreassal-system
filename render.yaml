@@ -10,7 +10,7 @@ services:
       cd nyayasetu
       python manage.py collectstatic --noinput
     startCommand: |
-      python manage.py migrate && gunicorn -c gunicorn_config.py nyayasetu.wsgi:application
+      python manage.py makemigrations && python manage.py migrate && python manage.py seed_data && gunicorn -c gunicorn_config.py nyayasetu.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: "3.10.13"

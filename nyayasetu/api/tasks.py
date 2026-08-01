@@ -89,6 +89,10 @@ def process_complaint_ai_task(self, complaint_id: int) -> dict:
         if result.summary:
             complaint.summary = result.summary
             update_fields.append('summary')
+            
+        if result.sentiment_score is not None:
+            complaint.sentiment_score = result.sentiment_score
+            update_fields.append('sentiment_score')
 
         if department and not complaint.department:
             complaint.department = department

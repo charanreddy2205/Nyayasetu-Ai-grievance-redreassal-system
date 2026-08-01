@@ -342,10 +342,19 @@ export const ComplaintDetail = () => {
             <div className="sla-card-content">
               <div className="sla-metric">
                 <span className="sla-label">Urgency Level:</span>
-                <span className={`urgency-badge ${getUrgencyClass(complaint.urgency)}`}>
-                  {complaint.urgency}
+                <span className={`urgency-badge ${getUrgencyClass(complaint.urgencyLevel)}`}>
+                  {complaint.urgencyLevel}
                 </span>
               </div>
+              
+              {complaint.sentimentScore != null && (
+                <div className="sla-metric">
+                  <span className="sla-label">Sentiment Score:</span>
+                  <span className="sla-val-text">
+                    {complaint.sentimentScore > 0 ? '+' : ''}{complaint.sentimentScore.toFixed(2)}
+                  </span>
+                </div>
+              )}
               
               <div className="sla-metric">
                 <span className="sla-label">SLA Deadline:</span>

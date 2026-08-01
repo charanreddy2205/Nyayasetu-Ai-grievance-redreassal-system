@@ -21,7 +21,8 @@ class Command(BaseCommand):
         
         # Check if we already have some data to prevent huge duplication
         if Department.objects.count() > 0:
-            self.stdout.write(self.style.WARNING('Database already contains data! We will add to it.'))
+            self.stdout.write(self.style.WARNING('Database already contains data! Skipping seed.'))
+            return
 
         # 1. Create a few departments
         self.stdout.write('Creating departments...')

@@ -38,6 +38,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
     resolvedAt = serializers.SerializerMethodField()
     slaDeadline = serializers.SerializerMethodField()
     urgencyLevel = serializers.CharField(source='urgency_level', read_only=True)
+    sentimentScore = serializers.FloatField(source='sentiment_score', read_only=True)
     escalationLevel = serializers.IntegerField(source='escalation_level', read_only=True)
     originalSlaHours = serializers.IntegerField(source='original_sla_hours', read_only=True)
     contactNumber = serializers.CharField(source='contact_number', read_only=True)
@@ -47,7 +48,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'image', 'imageUrl', 'created_by', 
             'department', 'assignedTo', 'status', 'escalationLevel', 
-            'urgencyLevel', 'originalSlaHours', 'slaDeadline', 'createdAt', 
+            'urgencyLevel', 'sentimentScore', 'originalSlaHours', 'slaDeadline', 'createdAt', 
             'resolvedAt', 'address', 'city', 'state', 'pincode', 'latitude', 
             'longitude', 'contactNumber', 'summary'
         ]

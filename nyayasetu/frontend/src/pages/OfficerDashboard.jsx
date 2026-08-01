@@ -265,6 +265,11 @@ export const OfficerDashboard = () => {
                       <span className={`urgency-badge ${getUrgencyClass(complaint.urgencyLevel)}`}>
                         {complaint.urgencyLevel}
                       </span>
+                      {complaint.sentimentScore != null && (
+                        <div style={{ fontSize: '11px', marginTop: '4px', color: '#666', fontWeight: 500 }}>
+                          Sentiment: {complaint.sentimentScore > 0 ? '+' : ''}{complaint.sentimentScore.toFixed(2)}
+                        </div>
+                      )}
                     </td>
                     <td>
                       {complaint.status === 'resolved' ? (

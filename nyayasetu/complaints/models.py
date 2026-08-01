@@ -65,6 +65,7 @@ class Complaint(SoftDeleteModel):
     contact_number = models.CharField(max_length=15, blank=True, null=True, help_text="Contact number for updates")
 
     summary = models.TextField(blank=True, null=True, help_text="AI-generated summary of the complaint")
+    sentiment_score = models.FloatField(blank=True, null=True, help_text="AI-calculated sentiment score (-1.0 to 1.0)")
 
     class Meta:
         indexes = [
