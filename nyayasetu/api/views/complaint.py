@@ -94,16 +94,12 @@ class ComplaintViewSet(viewsets.ModelViewSet):
             return base_query.filter(created_by=user)
             
         elif user.role == 'state_admin':
-            return base_query.filter(workflow_stage__in=['STATE_ADMIN', 'RESOLVED', 'CLOSED'])
+            return base_query.all()
             
         elif user.department:
             dept_query = base_query.filter(department=user.department)
-            if user.role == 'staff':
+            if user.role in ['staff', 'hod', 'district_officer']:
                 return dept_query
-            elif user.role == 'hod':
-                return dept_query.filter(workflow_stage__in=['HOD', 'DISTRICT_OFFICER', 'STATE_ADMIN', 'RESOLVED', 'CLOSED'])
-            elif user.role == 'district_officer':
-                return dept_query.filter(workflow_stage__in=['DISTRICT_OFFICER', 'STATE_ADMIN', 'RESOLVED', 'CLOSED'])
                 
         return base_query.none()
 

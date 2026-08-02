@@ -31,21 +31,20 @@ class IsComplaintParticipant(permissions.BasePermission):
     def has_object_permission(self, request: Any, view: Any, obj: Any) -> bool:
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role == ROLE_CITIZEN:
-            return obj.created_by_id == request.user.id
             
-        if hasattr(obj, 'current_owner_id') and obj.current_owner_id == request.user.id:
-            return True
+        is_citizen_owner = obj.created_by_id == request.user.id
+        is_current_owner = hasattr(obj, 'current_owner_id') and obj.current_owner_id == request.user.id
+        is_dept_officer = request.user.role in [ROLE_STAFF, ROLE_HOD, ROLE_DISTRICT_OFFICER] and obj.department_id == request.user.department_id
+        is_state_admin = request.user.role == ROLE_STATE_ADMIN
+        
+        # Read operations (GET, HEAD, OPTIONS)
+        if request.method in permissions.SAFE_METHODS:
+            return is_citizen_owner or is_current_owner or is_dept_officer or is_state_admin
             
-        if request.user.role == ROLE_STATE_ADMIN:
-            return obj.workflow_stage in ['STATE_ADMIN', 'RESOLVED', 'CLOSED']
+        # Write operations
+        # Allow citizen creator to post comments
+        if getattr(view, 'action', None) == 'post_comment':
+            return is_citizen_owner or is_current_owner
             
-        if obj.department_id == request.user.department_id:
-            if request.user.role == ROLE_STAFF:
-                return True
-            if request.user.role == ROLE_HOD:
-                return obj.workflow_stage in ['HOD', 'DISTRICT_OFFICER', 'STATE_ADMIN', 'RESOLVED', 'CLOSED']
-            if request.user.role == ROLE_DISTRICT_OFFICER:
-                return obj.workflow_stage in ['DISTRICT_OFFICER', 'STATE_ADMIN', 'RESOLVED', 'CLOSED']
-                
-        return False
+        # Only the current owner can update status, modify fields, delete, etc.
+        return is_current_owner
