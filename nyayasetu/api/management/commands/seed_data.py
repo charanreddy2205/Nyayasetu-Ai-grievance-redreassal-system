@@ -144,6 +144,8 @@ class Command(BaseCommand):
                     created_by=citizen,
                     department=department,
                     assigned_to=staff,
+                    current_owner=staff,
+                    workflow_stage='STAFF',
                     status=status,
                     urgency_level=urgency
                 )
@@ -167,6 +169,8 @@ class Command(BaseCommand):
                         )
                         EscalationLog.objects.filter(id=EscalationLog.objects.last().id).update(escalated_at=current_time)
                         complaint.assigned_to = hod
+                        complaint.current_owner = hod
+                        complaint.workflow_stage = 'HOD'
                         complaint.escalation_level = 1
                         
                     if depth >= 2 and do:
@@ -177,6 +181,8 @@ class Command(BaseCommand):
                         )
                         EscalationLog.objects.filter(id=EscalationLog.objects.last().id).update(escalated_at=current_time)
                         complaint.assigned_to = do
+                        complaint.current_owner = do
+                        complaint.workflow_stage = 'DISTRICT_OFFICER'
                         complaint.escalation_level = 2
                         
                     if depth == 3 and state_admin:
@@ -187,6 +193,8 @@ class Command(BaseCommand):
                         )
                         EscalationLog.objects.filter(id=EscalationLog.objects.last().id).update(escalated_at=current_time)
                         complaint.assigned_to = state_admin
+                        complaint.current_owner = state_admin
+                        complaint.workflow_stage = 'STATE_ADMIN'
                         complaint.escalation_level = 3
                         
                     complaint.save()
