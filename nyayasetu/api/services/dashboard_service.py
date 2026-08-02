@@ -128,7 +128,7 @@ class DashboardService:
                     "overdue": user_stats['overdue']
                 }
             else:
-                assigned_complaints = Complaint.objects.filter(assigned_to=user)
+                assigned_complaints = Complaint.objects.filter(current_owner=user)
                 officer_stats = assigned_complaints.aggregate(
                     assigned=Count('id'),
                     resolved=Count('id', filter=Q(status=STATUS_RESOLVED)),

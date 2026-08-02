@@ -200,6 +200,7 @@
                     
                     <!-- Send Message Form -->
                     <hr>
+                    {% if request.user == complaint.current_owner or request.user == complaint.created_by %}
                     <form method="post" enctype="multipart/form-data" class="mt-3">
                         {% csrf_token %}
                         <div class="mb-3">
@@ -220,6 +221,11 @@
                             </div>
                         </div>
                     </form>
+                    {% else %}
+                    <div class="alert alert-warning text-center fw-bold mt-3">
+                        <i class="fas fa-lock me-2"></i>Read Only - Complaint Escalated
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

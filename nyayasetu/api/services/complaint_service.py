@@ -97,16 +97,16 @@ class ComplaintService:
 
         # Access check based on hierarchical visibility
         has_access = False
-        if complaint.created_by_id == user.id or complaint.assigned_to_id == user.id:
+        if complaint.created_by_id == user.id or complaint.current_owner_id == user.id:
             has_access = True
-        elif user.role == ROLE_STATE_ADMIN and complaint.escalation_level >= 3:
+        elif user.role == ROLE_STATE_ADMIN and complaint.workflow_stage in ['STATE_ADMIN', 'RESOLVED', 'CLOSED']:
             has_access = True
         elif user.role != ROLE_CITIZEN and user.department_id == complaint.department_id:
-            if user.role == ROLE_STAFF and complaint.escalation_level >= 0:
+            if user.role == ROLE_STAFF:
                 has_access = True
-            elif user.role == ROLE_HOD and complaint.escalation_level >= 1:
+            elif user.role == ROLE_HOD and complaint.workflow_stage in ['HOD', 'DISTRICT_OFFICER', 'STATE_ADMIN', 'RESOLVED', 'CLOSED']:
                 has_access = True
-            elif user.role == ROLE_DISTRICT_OFFICER and complaint.escalation_level >= 2:
+            elif user.role == ROLE_DISTRICT_OFFICER and complaint.workflow_stage in ['DISTRICT_OFFICER', 'STATE_ADMIN', 'RESOLVED', 'CLOSED']:
                 has_access = True
         if not has_access:
             raise PermissionDeniedException("You do not have access to view this complaint.")
@@ -176,6 +176,8 @@ class ComplaintService:
             created_by=user,
             department=department,
             assigned_to=assigned_officer,
+            current_owner=assigned_officer,
+            workflow_stage='STAFF' if assigned_officer else 'NEW',
             urgency_level='low',     # AI will update this asynchronously
             summary='',              # AI will populate this asynchronously
             original_sla_hours=sla_hours,
@@ -225,7 +227,7 @@ class ComplaintService:
         except Complaint.DoesNotExist:
             raise NotFoundException(f"Grievance #{complaint_id} not found.")
 
-        if complaint.assigned_to != user:
+        if complaint.current_owner != user:
             raise PermissionDeniedException("You are not authorized to update this complaint status.")
 
         if status not in [STATUS_IN_PROGRESS, STATUS_RESOLVED]:

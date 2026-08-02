@@ -24,6 +24,17 @@ class Complaint(SoftDeleteModel):
         ('critical', 'Critical'),
     )
 
+    WORKFLOW_STAGES = (
+        ('NEW', 'New'),
+        ('STAFF', 'Staff'),
+        ('HOD', 'Head of Department'),
+        ('DISTRICT_OFFICER', 'District Officer'),
+        ('STATE_ADMIN', 'State Admin'),
+        ('RESOLVED', 'Resolved'),
+        ('CLOSED', 'Closed'),
+    )
+
+
     title = models.CharField(max_length=255)
     description = models.TextField()
     image = models.ImageField(upload_to='complaints/', blank=True, null=True)
@@ -46,6 +57,18 @@ class Complaint(SoftDeleteModel):
         blank=True, 
         related_name='assigned_complaints'
     )
+    
+    current_owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='owned_complaints',
+        help_text="The user currently responsible for this complaint with edit rights."
+    )
+    workflow_stage = models.CharField(max_length=20, choices=WORKFLOW_STAGES, default='NEW')
+    last_escalated_at = models.DateTimeField(blank=True, null=True)
+
     
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     escalation_level = models.IntegerField(default=0)
@@ -75,6 +98,7 @@ class Complaint(SoftDeleteModel):
             models.Index(fields=['urgency_level']),
             models.Index(fields=['city']),
             models.Index(fields=['state']),
+            models.Index(fields=['workflow_stage']),
             # Composite index for scheduler scan updates
             models.Index(fields=['status', 'sla_deadline'], name='complaint_status_sla_idx'),
         ]
@@ -87,7 +111,6 @@ class Complaint(SoftDeleteModel):
                 condition=models.Q(urgency_level__in=['low', 'medium', 'high', 'critical']),
                 name='complaint_urgency_check'
             ),
-            # Lat/Long coordinate validity range checks
             models.CheckConstraint(
                 condition=models.Q(latitude__gte=-90.0) & models.Q(latitude__lte=90.0),
                 name='complaint_latitude_range'
@@ -95,6 +118,10 @@ class Complaint(SoftDeleteModel):
             models.CheckConstraint(
                 condition=models.Q(longitude__gte=-180.0) & models.Q(longitude__lte=180.0),
                 name='complaint_longitude_range'
+            ),
+            models.CheckConstraint(
+                condition=models.Q(workflow_stage__in=['NEW', 'STAFF', 'HOD', 'DISTRICT_OFFICER', 'STATE_ADMIN', 'RESOLVED', 'CLOSED']),
+                name='complaint_workflow_stage_check'
             )
         ]
 

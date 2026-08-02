@@ -48,12 +48,16 @@ class EscalationService:
                         new_level = current_level + 1
                         
                         next_role = None
+                        next_stage = None
                         if new_level == 1:
                             next_role = ROLE_HOD
+                            next_stage = 'HOD'
                         elif new_level == 2:
                             next_role = ROLE_DISTRICT_OFFICER
+                            next_stage = 'DISTRICT_OFFICER'
                         elif new_level == 3:
                             next_role = ROLE_STATE_ADMIN
+                            next_stage = 'STATE_ADMIN'
                             
                         # Locate new assignee
                         new_assignee = User.objects.filter(
@@ -77,12 +81,14 @@ class EscalationService:
                         complaint.sla_deadline = new_deadline
                         complaint.status = STATUS_ESCALATED
                         if new_assignee:
-                            complaint.assigned_to = new_assignee
+                            complaint.current_owner = new_assignee
+                        complaint.workflow_stage = next_stage
+                        complaint.last_escalated_at = now
                         complaint.save()
                         
                         EscalationLog.objects.create(
                             complaint=complaint,
-                            escalated_to=new_assignee if new_assignee else complaint.assigned_to,
+                            escalated_to=new_assignee if new_assignee else complaint.current_owner,
                             reason=f"SLA breached. Escalated to Level {new_level} ({next_role})."
                         )
                         from api.services.audit_service import AuditService

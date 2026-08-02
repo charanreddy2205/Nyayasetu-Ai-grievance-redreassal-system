@@ -34,18 +34,18 @@ class IsComplaintParticipant(permissions.BasePermission):
         if request.user.role == ROLE_CITIZEN:
             return obj.created_by_id == request.user.id
             
-        if obj.assigned_to_id == request.user.id:
+        if hasattr(obj, 'current_owner_id') and obj.current_owner_id == request.user.id:
             return True
             
         if request.user.role == ROLE_STATE_ADMIN:
-            return obj.escalation_level >= 3
+            return obj.workflow_stage in ['STATE_ADMIN', 'RESOLVED', 'CLOSED']
             
         if obj.department_id == request.user.department_id:
             if request.user.role == ROLE_STAFF:
-                return obj.escalation_level >= 0
+                return True
             if request.user.role == ROLE_HOD:
-                return obj.escalation_level >= 1
+                return obj.workflow_stage in ['HOD', 'DISTRICT_OFFICER', 'STATE_ADMIN', 'RESOLVED', 'CLOSED']
             if request.user.role == ROLE_DISTRICT_OFFICER:
-                return obj.escalation_level >= 2
+                return obj.workflow_stage in ['DISTRICT_OFFICER', 'STATE_ADMIN', 'RESOLVED', 'CLOSED']
                 
         return False
