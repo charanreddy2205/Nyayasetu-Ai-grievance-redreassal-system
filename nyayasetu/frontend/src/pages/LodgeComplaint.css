@@ -31,10 +31,24 @@
   transform: translateX(-3px);
 }
 
-/* Header card style */
+/* Header card style - Premium Design */
 .lodge-header-card {
-  padding: 2rem;
-  background-color: white;
+  padding: 2.5rem;
+  background: linear-gradient(135deg, var(--bg-white) 0%, #f8fafc 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(0,0,0,0.05);
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.lodge-header-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-blue), var(--green), var(--saffron));
 }
 
 .badge-spark {
@@ -46,24 +60,26 @@
   border: 1px dashed var(--saffron);
   font-size: 0.75rem;
   font-weight: 800;
-  padding: 0.35rem 0.75rem;
+  padding: 0.4rem 0.85rem;
   border-radius: 40px;
   text-transform: uppercase;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .lodge-header-card h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.75rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 2rem;
   font-weight: 800;
   color: var(--primary-navy);
+  letter-spacing: -0.5px;
 }
 
 .lodge-header-card p {
   margin: 0;
   color: var(--text-muted);
   line-height: 1.6;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
 }
 
 /* Alert notifications */

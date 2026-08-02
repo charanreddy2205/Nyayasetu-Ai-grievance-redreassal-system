@@ -213,7 +213,7 @@ class ComplaintService:
 
     @staticmethod
     @transaction.atomic
-    def update_status(user: Any, complaint_id: int, status: str) -> Complaint:
+    def update_status(user: Any, complaint_id: int, status: str, image: Any = None) -> Complaint:
         """
         Updates complaint status. Restricted to the assigned officer.
         """
@@ -228,9 +228,22 @@ class ComplaintService:
         if status not in [STATUS_IN_PROGRESS, STATUS_RESOLVED]:
             raise ValidationException("Invalid status target.")
 
+        if status == STATUS_RESOLVED and not image and user.role != ROLE_STATE_ADMIN:
+            raise ValidationException("A photo proof of resolution must be uploaded when marking a grievance as resolved.")
+
         complaint.status = status
         if status == STATUS_RESOLVED:
             complaint.resolved_at = timezone.now()
+            
+            # Save the image as an official resolution proof comment
+            if image:
+                from api.services.comment_service import CommentService
+                CommentService.add_comment(
+                    user=user,
+                    complaint_id=complaint.id,
+                    comment_text="Official Resolution Proof attached by Officer.",
+                    image=image
+                )
             
         complaint.save()
         from api.services.audit_service import AuditService

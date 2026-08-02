@@ -8,15 +8,35 @@
   box-sizing: border-box;
 }
 
-/* Hero welcome banner */
+/* Hero welcome banner - Premium Design */
 .hero-banner {
-  background: linear-gradient(135deg, var(--primary-navy), #1e293b);
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #6366f1 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 10s ease infinite;
   border-radius: var(--radius-lg);
   position: relative;
   overflow: hidden;
   color: white;
-  padding: 3rem 2.5rem;
-  box-shadow: var(--shadow-lg);
+  padding: 3.5rem 2.5rem;
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .hero-content {
@@ -29,40 +49,31 @@
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--saffron);
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  background-color: rgba(255, 153, 51, 0.08);
-  border: 1px dashed var(--saffron);
-  padding: 0.35rem 0.75rem;
+  padding: 0.35rem 0.85rem;
   border-radius: 40px;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .hero-title {
-  font-size: 2.25rem;
+  font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 1rem 0;
   letter-spacing: -0.5px;
-  background: linear-gradient(to right, #ffffff, #e2e8f0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .hero-subtitle {
-  font-size: 1.05rem;
-  color: #94a3b8;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.6;
   margin: 0;
-}
-
-.hero-accent-strip {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 6px;
-  width: 100%;
-  background: linear-gradient(to right, var(--saffron), #ffffff, var(--green));
+  font-weight: 500;
 }
 
 /* Numerical stats counters */

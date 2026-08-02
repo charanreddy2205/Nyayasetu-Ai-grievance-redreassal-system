@@ -216,8 +216,9 @@ class ComplaintViewSet(viewsets.ModelViewSet):
     def patch_status(self, request: HttpRequest, pk: str = None) -> Response:
         complaint = self.get_object()
         status_val = request.data.get("status")
+        image = request.FILES.get("image")
         
-        updated_complaint = ComplaintService.update_status(request.user, complaint.id, status_val)
+        updated_complaint = ComplaintService.update_status(request.user, complaint.id, status_val, image=image)
         serializer = ComplaintSerializer(instance=updated_complaint)
         
         return Response({

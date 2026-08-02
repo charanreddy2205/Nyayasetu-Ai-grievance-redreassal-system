@@ -26,14 +26,20 @@
 }
 
 .detail-card {
-  background-color: white;
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(0,0,0,0.05);
+  overflow: hidden;
+  position: relative;
+  padding: 2rem;
 }
 
 .detail-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .complaint-id-badge {
@@ -582,3 +588,111 @@
 .timeline-step-title.text-warning { color: var(--saffron) !important; }
 .timeline-step-title.text-green { color: var(--green) !important; }
 .timeline-step-title.text-red { color: #dc2626; }
+
+/* Photo Proof Resolve Modal */
+.resolve-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.resolve-modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 450px;
+  box-shadow: var(--shadow-lg);
+}
+
+.resolve-modal-title {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary-navy);
+  font-size: 1.25rem;
+}
+
+.resolve-modal-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.resolve-file-upload {
+  margin-bottom: 1rem;
+}
+
+.btn-resolve-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--primary-blue);
+  font-weight: 600;
+  cursor: pointer;
+  background-color: var(--bg-light);
+  transition: all 0.2s ease;
+}
+
+.btn-resolve-upload:hover {
+  border-color: var(--primary-blue);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.resolve-img-preview {
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  max-height: 200px;
+  display: flex;
+  justify-content: center;
+  background: var(--bg-light);
+}
+
+.resolve-img-preview img {
+  max-height: 200px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.resolve-modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  background: white;
+  color: var(--text-dark);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-submit-resolve {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background: var(--green);
+  color: white;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-submit-resolve:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}

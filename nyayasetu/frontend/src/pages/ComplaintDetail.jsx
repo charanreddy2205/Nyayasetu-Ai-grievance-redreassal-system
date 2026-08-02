@@ -100,23 +100,47 @@ export const ComplaintDetail = () => {
     }
   };
 
-  const handleStatusUpdate = async (newStatus) => {
+  const [resolvingImage, setResolvingImage] = useState(null);
+  const [resolvingImagePreview, setResolvingImagePreview] = useState(null);
+  const [showResolveModal, setShowResolveModal] = useState(false);
+
+  const handleResolveFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setResolvingImage(file);
+      setResolvingImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleStatusUpdate = async (newStatus, e = null) => {
+    if (e) e.preventDefault();
+    if (newStatus === 'resolved' && !showResolveModal) {
+      setShowResolveModal(true);
+      return;
+    }
+    
     setUpdatingStatus(true);
     setError('');
     setSuccess('');
 
     try {
+      const formData = new FormData();
+      formData.append('status', newStatus);
+      if (newStatus === 'resolved' && resolvingImage) {
+        formData.append('image', resolvingImage);
+      }
+
       const response = await apiFetch(`/api/complaints/${id}/status/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus }),
+        body: formData,
       });
 
       const data = await response.json();
       if (response.ok && data.success) {
         setSuccess(`Complaint status updated to '${newStatus.replace('_', ' ')}' successfully!`);
+        setShowResolveModal(false);
+        setResolvingImage(null);
+        setResolvingImagePreview(null);
         // Refresh details
         await fetchComplaintDetails();
       } else {
@@ -417,6 +441,49 @@ export const ComplaintDetail = () => {
                   Mark Resolved
                 </button>
               </div>
+
+              {/* Photo Proof Resolve Modal */}
+              {showResolveModal && (
+                <div className="resolve-modal-overlay">
+                  <div className="resolve-modal-content">
+                    <h3 className="resolve-modal-title">Attach Resolution Proof</h3>
+                    <p className="resolve-modal-desc">
+                      Please upload a site verification photo to officially mark this grievance as resolved.
+                    </p>
+                    <form onSubmit={(e) => handleStatusUpdate('resolved', e)}>
+                      <div className="resolve-file-upload">
+                        <input
+                          type="file"
+                          id="resolve-attachment"
+                          accept="image/*"
+                          onChange={handleResolveFileChange}
+                          className="hidden-file-input"
+                          required
+                        />
+                        <label htmlFor="resolve-attachment" className="btn-resolve-upload">
+                          <Image size={18} />
+                          <span>{resolvingImage ? 'Change Photo' : 'Upload Photo Proof'}</span>
+                        </label>
+                      </div>
+                      
+                      {resolvingImagePreview && (
+                        <div className="resolve-img-preview">
+                          <img src={resolvingImagePreview} alt="Proof preview" />
+                        </div>
+                      )}
+                      
+                      <div className="resolve-modal-actions">
+                        <button type="button" className="btn-cancel" onClick={() => setShowResolveModal(false)}>
+                          Cancel
+                        </button>
+                        <button type="submit" className="btn-submit-resolve" disabled={updatingStatus || !resolvingImage}>
+                          {updatingStatus ? 'Resolving...' : 'Confirm Resolution'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
