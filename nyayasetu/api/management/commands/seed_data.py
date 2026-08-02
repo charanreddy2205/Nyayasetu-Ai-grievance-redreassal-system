@@ -107,10 +107,20 @@ class Command(BaseCommand):
         
         if out_of_bounds.exists() or lacking_escalations or has_us_states or rogues_exist or kwargs.get('clear'):
             self.stdout.write(self.style.WARNING("Found legacy data, rogue users, or --clear passed. Wiping all complaints to re-seed timelines..."))
-            ComplaintComment.all_objects.all().delete()
-            EscalationLog.objects.all().delete()
-            Complaint.all_objects.all().delete()
             
+            # Use raw SQL to bypass Django's soft-delete ORM and bulk delete cascade traps
+            from django.db import connection
+            with connection.cursor() as cursor:
+                if connection.vendor == 'postgresql':
+                    cursor.execute("TRUNCATE TABLE complaints_complaintcomment CASCADE;")
+                    cursor.execute("TRUNCATE TABLE escalation_escalationlog CASCADE;")
+                    cursor.execute("TRUNCATE TABLE complaints_complaint CASCADE;")
+                else:
+                    cursor.execute("DELETE FROM complaints_complaintcomment;")
+                    cursor.execute("DELETE FROM escalation_escalationlog;")
+                    cursor.execute("DELETE FROM complaints_complaint;")
+            
+            # Now that all references are completely gone, we can safely purge rogue users
             User.objects.exclude(username__in=allowed_usernames).delete()
             self.stdout.write("Purged rogue fake users.")
             
