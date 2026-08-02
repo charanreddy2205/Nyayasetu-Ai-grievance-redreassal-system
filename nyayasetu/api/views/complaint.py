@@ -171,7 +171,7 @@ class ComplaintViewSet(viewsets.ModelViewSet):
                 "id": log.id,
                 "escalatedTo": log.escalated_to.username if log.escalated_to else None,
                 "reason": log.reason,
-                "createdAt": log.created_at.isoformat()
+                "createdAt": log.escalated_at.isoformat()
             })
             
         data = complaint_serializer.data
