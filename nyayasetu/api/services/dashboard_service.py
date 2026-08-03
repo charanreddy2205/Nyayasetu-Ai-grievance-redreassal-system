@@ -41,9 +41,9 @@ class DashboardService:
 
         # Optimize department joins
         departments = Department.objects.annotate(
-            total_complaints=Count('complaints'),
-            resolved_count=Count('complaints', filter=Q(complaints__status=STATUS_RESOLVED)),
-            failure_count=Count('complaints', filter=Q(complaints__status=STATUS_ADMINISTRATIVE_FAILURE))
+            total_complaints=Count('complaints', filter=Q(complaints__is_deleted=False)),
+            resolved_count=Count('complaints', filter=Q(complaints__status=STATUS_RESOLVED, complaints__is_deleted=False)),
+            failure_count=Count('complaints', filter=Q(complaints__status=STATUS_ADMINISTRATIVE_FAILURE, complaints__is_deleted=False))
         ).order_by('-transparency_score')
 
         dept_data = []

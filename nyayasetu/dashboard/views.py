@@ -24,9 +24,9 @@ def get_global_stats():
 def get_department_stats():
     """Helper to get detailed department statistics."""
     return Department.objects.annotate(
-        total_complaints=Count('complaints'),
-        resolved_count=Count('complaints', filter=Q(complaints__status='resolved')),
-        failure_count=Count('complaints', filter=Q(complaints__status='administrative_failure'))
+        total_complaints=Count('complaints', filter=Q(complaints__is_deleted=False)),
+        resolved_count=Count('complaints', filter=Q(complaints__status='resolved', complaints__is_deleted=False)),
+        failure_count=Count('complaints', filter=Q(complaints__status='administrative_failure', complaints__is_deleted=False))
     ).order_by('-transparency_score')
 
 @login_required
