@@ -27,6 +27,21 @@ class VaderSentimentAnalyzer(BaseSentimentAnalyzer):
     def __init__(self) -> None:
         ensure_vader_downloaded()
         self.sid = SentimentIntensityAnalyzer()
+        
+        # Add custom grievance-specific words to lexicon
+        custom_words = {
+            'unsafe': -2.5,
+            'danger': -3.0,
+            'dark': -1.0,
+            'broken': -2.0,
+            'failure': -2.0,
+            'urgent': -1.5,
+            'hazard': -2.5,
+            'leak': -1.5,
+            'pothole': -1.5,
+            'stink': -2.0
+        }
+        self.sid.lexicon.update(custom_words)
 
     def analyze_sentiment(self, text: str) -> float:
         if not text:
